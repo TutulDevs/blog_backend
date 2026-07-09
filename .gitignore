@@ -1,5 +1,29 @@
 node_modules
 # Keep environment variables out of version control
-.env
+*.env
+contracts/*.sol
 
-/generated/prisma
+./logs
+.idea
+.DS_Store
+yarn-error.log
+deploy.sh
+test.log
+keys
+test_logs
+test.json
+Brewfile
+git-server.sh
+test.js
+test.ts
+
+# Existing entries...
+storage/wallets/*
+!storage/wallets/.gitkeep
+
+# Monero specific
+*.keys
+*.new.keys
+
+coverage
+*.local.*
