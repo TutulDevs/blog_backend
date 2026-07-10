@@ -2,8 +2,7 @@ node_modules
 # Keep environment variables out of version control
 *.env
 contracts/*.sol
-
-./logs
+dist
 .idea
 .DS_Store
 yarn-error.log

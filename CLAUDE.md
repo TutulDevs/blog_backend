@@ -69,3 +69,9 @@ Managed via `@nestjs/config`, loaded from a root `.env` (gitignored). Known vari
 - `yarn prisma:seed` — run `prisma/seed.ts` (seeds the initial super admin `Staff` record).
 - `yarn db:setup` — push schema then seed, in one step.
 - Swagger docs are served at `/api/docs` once the app is running.
+
+# Trello Guardrails
+
+- Never fetch an entire board or deep-read lists unless explicitly asked.
+- Always use specific card IDs or precise text searches (`search_cards`) to find items.
+- If creating a card, keep the description under 2-3 sentences. Do not dump code blocks into Trello descriptions.

@@ -124,9 +124,6 @@ export class XModule {}
 
 ## Non-goals
 
-- Don't build a generic CRUD-generator abstraction — write each resource's
-  files directly, matching the shape of any existing modules in the repo.
-- Don't add pagination, filtering, or caching unless asked — a plain list
-  endpoint is enough until the user needs more.
-- Don't touch unrelated modules or refactor existing endpoints while adding
-  a new one.
+- Don't build a generic CRUD-generator abstraction — write each resource's files directly, matching the shape of any existing modules in the repo.
+- Don't add pagination, filtering, or caching unless asked — a plain list endpoint is enough until the user needs more.
+- Don't touch unrelated modules or refactor existing endpoints while adding a new one.
