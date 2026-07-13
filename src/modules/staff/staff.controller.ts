@@ -1,10 +1,12 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -18,6 +20,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { StaffRole } from '../../lib/coreconstants';
+import { UpdateStaffRoleDto, UpdateStaffStatusDto } from './dto/staff.dto';
 
 @ApiTags('staff')
 @ApiBearerAuth()
@@ -71,5 +74,71 @@ export class StaffController {
   })
   getStaffById(@Param('id', ParseIntPipe) id: number) {
     return this.staffService.getStaffById(id);
+  }
+
+  @Patch(':id/status')
+  @Roles(StaffRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update staff status (admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the updated staff',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid id format or invalid status value',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Not logged in or unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Logged in but not permitted (non-admin)',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Staff not found',
+  })
+  updateStaffStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStaffStatusDto: UpdateStaffStatusDto,
+  ) {
+    return this.staffService.updateStaffStatus(id, updateStaffStatusDto.status);
+  }
+
+  @Patch(':id/role')
+  @Roles(StaffRole.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update staff role (admin only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the updated staff',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid id format or invalid role value',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Not logged in or unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Logged in but not permitted (non-admin)',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Staff not found',
+  })
+  updateStaffRole(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateStaffRoleDto: UpdateStaffRoleDto,
+  ) {
+    return this.staffService.updateStaffRole(id, updateStaffRoleDto.role);
   }
 }

@@ -14,7 +14,7 @@ import { AuthService } from './auth.service';
         signOptions: {
           expiresIn: config.get<string>(
             'JWT_EXPIRES_IN',
-            '1d',
+            '15m',
           ) as JwtSignOptions['expiresIn'],
         },
       }),

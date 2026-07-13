@@ -20,7 +20,7 @@ model Staff {
   updatedAt          DateTime  @updatedAt
 }
 
-model Author {
+model User {
   id        Int       @id @default(autoincrement())
   username  String    @unique
   email     String    @unique
@@ -40,8 +40,8 @@ model Post {
   content    String
   coverImage String?
   status     Int       @default(0)
-  authorId   Int
-  author     Author    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   categoryId Int?
   category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   comments   Comment[]
@@ -65,8 +65,8 @@ model Comment {
   status     Int      @default(0)
   postId     Int
   post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId   Int?
-  author     Author?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   guestName  String?
   guestEmail String?
   createdAt  DateTime @default(now())
