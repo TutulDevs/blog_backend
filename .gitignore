@@ -3,6 +3,7 @@ node_modules
 *.env
 contracts/*.sol
 dist
+logs
 .idea
 .DS_Store
 yarn-error.log

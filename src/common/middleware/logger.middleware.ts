@@ -4,7 +4,7 @@ import { appendFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
 const LOG_DIR = join(process.cwd(), 'logs');
-const LOG_FILE = join(LOG_DIR, 'requests.txt');
+const LOG_FILE = join(LOG_DIR, 'api_reqs.md');
 
 @Injectable()
 export class LoggerMiddleware implements NestMiddleware {
@@ -13,7 +13,9 @@ export class LoggerMiddleware implements NestMiddleware {
 
     res.on('finish', () => {
       const duration = Date.now() - start;
-      const line = `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms\n`;
+      // const line = `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms\n`;
+      const safeUrl = req.originalUrl.replace(/\|/g, '\\|'); // Escapes any pipe characters
+      const line = `| ${new Date().toISOString()} | \`${req.method}\` | \`${safeUrl}\` | ${res.statusCode} | ${duration}ms |\n`;
       this.writeLog(line);
     });
 

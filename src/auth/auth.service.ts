@@ -1,9 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { StaffStatus } from '../lib/coreconstants';
-import { StaffLoginDto } from './dto/staff-login.dto';
+import { StaffLoginDto, StaffRegisterDto } from './dto/staff.dto';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +35,7 @@ export class AuthService {
     }
 
     const payload = {
-      sub: staff.id,
+      id: staff.id,
       email: staff.email,
       role: staff.role,
     };
@@ -47,6 +51,32 @@ export class AuthService {
         role: staff.role,
         status: staff.status,
       },
+    };
+  }
+
+  async staffRegister(dto: StaffRegisterDto) {
+    const existingStaff = await this.prisma.staff.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (existingStaff) {
+      throw new ConflictException(
+        'An account with this email address already exists.',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+
+    const newStaff = await this.prisma.staff.create({
+      data: {
+        ...dto,
+        password: hashedPassword,
+      },
+    });
+
+    return {
+      id: newStaff.id,
+      email: newStaff.email,
     };
   }
 }
