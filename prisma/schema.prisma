@@ -8,15 +8,16 @@ generator client {
 }
 
 model Staff {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      Int      @default(2)
-  status    Int      @default(1)
-  resetCode String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  password           String
+  name               String?
+  role               Int       @default(2)
+  status             Int       @default(1)
+  resetCode          Int?
+  resetCodeExpiresAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model Author {
@@ -80,14 +81,13 @@ model Newsletter {
   updatedAt DateTime @updatedAt
 }
 
-
 model Test {
-  id         Int       @default(autoincrement())
+  id         Int      @default(autoincrement())
   title      String
-  slug       String    @unique @id
+  slug       String   @id @unique
   content    String
   coverImage String?
-  status     Int       @default(0)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  status     Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

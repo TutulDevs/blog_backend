@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -6,8 +7,17 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { StaffStatus } from '../../lib/coreconstants';
-import { StaffLoginDto, StaffRegisterDto } from './dto/auth_staff.dto';
+import {
+  STAFF_RESET_CODE_TTL_MINUTES,
+  StaffStatus,
+} from '../../lib/coreconstants';
+import {
+  StaffForgotPasswordDto,
+  StaffLoginDto,
+  StaffRegisterDto,
+  StaffResetPasswordDto,
+} from './dto/auth_staff.dto';
+import { generateRandomNumber } from 'src/lib/functions';
 
 @Injectable()
 export class AuthService {
@@ -77,6 +87,59 @@ export class AuthService {
     return {
       id: newStaff.id,
       email: newStaff.email,
+    };
+  }
+
+  async staffForgotPassword(dto: StaffForgotPasswordDto) {
+    const staff = await this.prisma.staff.findUnique({
+      where: { email: dto.email },
+    });
+
+    // Always return the same response whether or not the email exists,
+    // so this endpoint can't be used to enumerate staff accounts.
+    if (staff) {
+      const resetCodeExpiresAt = new Date(
+        Date.now() + STAFF_RESET_CODE_TTL_MINUTES * 60 * 1000,
+      );
+
+      await this.prisma.staff.update({
+        where: { email: dto.email },
+        data: { resetCode: generateRandomNumber(), resetCodeExpiresAt },
+      });
+    }
+
+    return {
+      message: 'If that email is registered, a reset code has been sent',
+    };
+  }
+
+  async staffResetPassword(dto: StaffResetPasswordDto) {
+    const staff = await this.prisma.staff.findUnique({
+      where: { email: dto.email },
+    });
+
+    const isCodeValid =
+      staff?.resetCode != null && staff.resetCode === Number(dto.resetCode);
+    const isCodeExpired =
+      !staff?.resetCodeExpiresAt || staff.resetCodeExpiresAt < new Date();
+
+    if (!staff || !isCodeValid || isCodeExpired) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
+
+    const hashedPassword = await bcrypt.hash(dto.password, 12);
+
+    await this.prisma.staff.update({
+      where: { id: staff.id },
+      data: {
+        resetCode: null,
+        resetCodeExpiresAt: null,
+        password: hashedPassword,
+      },
+    });
+
+    return {
+      message: 'Reset password successful',
     };
   }
 }
