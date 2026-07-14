@@ -6,13 +6,21 @@ import { StaffRole, StaffStatus } from '../../lib/coreconstants';
 export class StaffService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllStaffs() {
+  async getAllStaffs(requesterRole: StaffRole) {
+    const isAdmin = requesterRole === StaffRole.ADMIN;
+
+    const totalStaffs = await this.prisma.staff.count();
     const staffs = await this.prisma.staff.findMany({
-      select: { id: true, email: true, name: true, role: true },
+      omit: {
+        password: true,
+        resetCode: true,
+        resetCodeExpiresAt: true,
+        status: !isAdmin,
+      },
     });
 
     return {
-      totalCount: staffs.length,
+      totalCount: totalStaffs,
       list: staffs,
     };
   }

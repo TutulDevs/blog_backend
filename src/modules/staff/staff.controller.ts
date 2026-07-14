@@ -7,7 +7,9 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -16,16 +18,21 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { StaffService } from './staff.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import {
+  JwtAuthGuard,
+  RequestWithStaff,
+} from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { StaffRole } from '../../lib/coreconstants';
 import { UpdateStaffRoleDto, UpdateStaffStatusDto } from './dto/staff.dto';
+import { TransformPostInterceptor } from 'src/common/interceptors/transform_post.interceptor';
 
 @ApiTags('staff')
 @ApiBearerAuth()
 @Controller('staff')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@UseInterceptors(TransformPostInterceptor)
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 
@@ -42,8 +49,8 @@ export class StaffController {
     status: 401,
     description: 'Not logged in or unauthorized',
   })
-  getAllStaffs() {
-    return this.staffService.getAllStaffs();
+  getAllStaffs(@Req() req: RequestWithStaff) {
+    return this.staffService.getAllStaffs(req.staff.role);
   }
 
   @Get(':id')
