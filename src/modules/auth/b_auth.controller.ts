@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { AuthService } from './auth.service';
+import { B_AuthService } from './b_auth.service';
 import {
   StaffForgotPasswordDto,
   StaffLoginDto,
@@ -9,10 +9,10 @@ import {
   StaffResetPasswordDto,
 } from './dto/auth_staff.dto';
 
-@ApiTags('auth')
+@ApiTags('auth staff')
 @Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+export class B_AuthController {
+  constructor(private readonly authService: B_AuthService) {}
 
   @Post('staff/login')
   @HttpCode(HttpStatus.OK)

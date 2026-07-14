@@ -1,3 +1,6 @@
+export const INACTIVE = 0;
+export const ACTIVE = 1;
+
 export enum StaffRole {
   ADMIN = 1,
   EDITOR = 2,
@@ -50,3 +53,4 @@ export enum NewsletterSubscriptionStatus {
 export const JWT_SECRET = process.env.JWT_SECRET ?? '';
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN ?? '';
 export const STAFF_RESET_CODE_TTL_MINUTES = 15;
+export const USER_VERIFY_CODE_TTL_MINUTES = 15;

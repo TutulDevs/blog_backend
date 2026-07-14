@@ -20,7 +20,7 @@ import {
 import { generateRandomNumber } from 'src/lib/functions';
 
 @Injectable()
-export class AuthService {
+export class B_AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,

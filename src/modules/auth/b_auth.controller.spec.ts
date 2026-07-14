@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthController } from './auth.controller';
-import { AuthService } from './auth.service';
+import { B_AuthController } from './b_auth.controller';
+import { B_AuthService } from './b_auth.service';
 import {
   StaffForgotPasswordDto,
   StaffLoginDto,
@@ -9,15 +9,15 @@ import {
 } from './dto/auth_staff.dto';
 
 describe('AuthController', () => {
-  let controller: AuthController;
-  let authService: jest.Mocked<AuthService>;
+  let controller: B_AuthController;
+  let authService: jest.Mocked<B_AuthService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AuthController],
+      controllers: [B_AuthController],
       providers: [
         {
-          provide: AuthService,
+          provide: B_AuthService,
           useValue: {
             staffLogin: jest.fn(),
             staffRegister: jest.fn(),
@@ -28,8 +28,8 @@ describe('AuthController', () => {
       ],
     }).compile();
 
-    controller = module.get(AuthController);
-    authService = module.get(AuthService);
+    controller = module.get(B_AuthController);
+    authService = module.get(B_AuthService);
   });
 
   afterEach(() => {
