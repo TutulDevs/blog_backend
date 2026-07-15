@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import {
   ACTIVE,
   AuthorStatus,
+  DEFAULT_SALT_ROUNDS,
   INACTIVE,
   USER_VERIFY_CODE_TTL_MINUTES,
 } from '../../lib/coreconstants';
@@ -38,7 +39,7 @@ export class F_AuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 12);
+    const hashedPassword = await bcrypt.hash(dto.password, DEFAULT_SALT_ROUNDS);
     const verifyCodeExpiresAt = new Date(
       Date.now() + USER_VERIFY_CODE_TTL_MINUTES * 60 * 1000,
     );

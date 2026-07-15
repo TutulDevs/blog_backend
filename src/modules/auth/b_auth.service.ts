@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
+  DEFAULT_SALT_ROUNDS,
   STAFF_RESET_CODE_TTL_MINUTES,
   StaffStatus,
 } from '../../lib/coreconstants';
@@ -75,7 +76,7 @@ export class B_AuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 12);
+    const hashedPassword = await bcrypt.hash(dto.password, DEFAULT_SALT_ROUNDS);
 
     const newStaff = await this.prisma.staff.create({
       data: {
@@ -127,7 +128,7 @@ export class B_AuthService {
       throw new BadRequestException('Invalid or expired reset code');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 12);
+    const hashedPassword = await bcrypt.hash(dto.password, DEFAULT_SALT_ROUNDS);
 
     await this.prisma.staff.update({
       where: { id: staff.id },

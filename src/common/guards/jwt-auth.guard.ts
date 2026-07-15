@@ -14,7 +14,7 @@ export interface AuthenticatedStaff {
 }
 
 export interface RequestWithStaff extends Request {
-  staff: AuthenticatedStaff;
+  user: AuthenticatedStaff;
 }
 
 @Injectable()
@@ -30,7 +30,9 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      request.staff = await this.jwtService.verifyAsync(token);
+      const value = await this.jwtService.verifyAsync(token);
+      // { id: 1, email: 'admin@email.com', role: 1, iat: 1784115890, exp: 1784116190 }
+      request.user = value;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');
     }

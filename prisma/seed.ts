@@ -1,11 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { StaffRole, StaffStatus } from '../src/lib/coreconstants';
+import {
+  DEFAULT_SALT_ROUNDS,
+  StaffRole,
+  StaffStatus,
+} from '../src/lib/coreconstants';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const hashedPassword = await bcrypt.hash('Admin@123', 12);
+  const hashedPassword = await bcrypt.hash('Admin@123', DEFAULT_SALT_ROUNDS);
 
   const superAdmin = await prisma.staff.create({
     data: {
