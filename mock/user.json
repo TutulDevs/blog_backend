@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "username": "j_writer",
+    "email": "jwriter@example.com",
+    "password": "Pass.1234",
+    "name": "Jamie Writer",
+    "status": 1,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  },
+  {
+    "id": 2,
+    "username": "amara_k",
+    "email": "amara.k@example.com",
+    "password": "Pass.1234",
+    "name": "Amara Khan",
+    "status": 1,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  },
+  {
+    "id": 3,
+    "username": "leo_codes",
+    "email": "leo.codes@example.com",
+    "password": "Pass.1234",
+    "name": "Leo Fernandez",
+    "status": 1,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  },
+  {
+    "id": 4,
+    "username": "priya.s",
+    "email": "priya.s@example.com",
+    "password": "Pass.1234",
+    "name": "Priya Sharma",
+    "status": 4,
+    "isVerified": 0,
+    "verifyCode": 482913,
+    "verifyCodeExpiresAt": "2026-08-01T00:00:00.000Z"
+  },
+  {
+    "id": 5,
+    "username": "tom_b",
+    "email": "tom.b@example.com",
+    "password": "Pass.1234",
+    "name": "Tom Baxter",
+    "status": 2,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  },
+  {
+    "id": 6,
+    "username": "nina_r",
+    "email": "nina.r@example.com",
+    "password": "Pass.1234",
+    "name": "Nina Rodrigues",
+    "status": 3,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  },
+  {
+    "id": 7,
+    "username": "sam_writes",
+    "email": "sam.writes@example.com",
+    "password": "Pass.1234",
+    "name": "Sam Okafor",
+    "status": 0,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  },
+  {
+    "id": 8,
+    "username": "elena_v",
+    "email": "elena.v@example.com",
+    "password": "Pass.1234",
+    "name": "Elena Volkov",
+    "status": 1,
+    "isVerified": 1,
+    "verifyCode": null,
+    "verifyCodeExpiresAt": null
+  }
+]

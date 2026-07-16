@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:push": "prisma db push",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "db:setup": "npm run prisma:push && npm run prisma:seed"
+    "db:setup": "npm run prisma:push && npm run prisma:seed",
+    "db:seed:mock": "ts-node mock/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

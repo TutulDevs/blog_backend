@@ -1,0 +1,92 @@
+[
+  {
+    "id": 1,
+    "content": "This was exactly the walkthrough I needed to set up my first NestJS module. Thanks!",
+    "status": 1,
+    "postId": 1,
+    "userId": 2,
+    "guestName": null,
+    "guestEmail": null
+  },
+  {
+    "id": 2,
+    "content": "Great intro, though I'd love a follow-up on Prisma migrations in production.",
+    "status": 1,
+    "postId": 1,
+    "userId": 3,
+    "guestName": null,
+    "guestEmail": null
+  },
+  {
+    "id": 3,
+    "content": "Number 4 changed how I write interfaces. Solid list.",
+    "status": 1,
+    "postId": 2,
+    "userId": 1,
+    "guestName": null,
+    "guestEmail": null
+  },
+  {
+    "id": 4,
+    "content": "As a guest reader, I really appreciated this breakdown.",
+    "status": 1,
+    "postId": 2,
+    "userId": null,
+    "guestName": "Guest Reader",
+    "guestEmail": "guest.reader@example.com"
+  },
+  {
+    "id": 5,
+    "content": "Buy cheap watches at my-spam-site.example — best prices guaranteed!!!",
+    "status": 2,
+    "postId": 2,
+    "userId": null,
+    "guestName": "Deal Bot",
+    "guestEmail": "dealbot@spam.example"
+  },
+  {
+    "id": 6,
+    "content": "Curious how this handles rate limiting for repeat offenders.",
+    "status": 1,
+    "postId": 3,
+    "userId": 8,
+    "guestName": null,
+    "guestEmail": null
+  },
+  {
+    "id": 7,
+    "content": "This comment is awaiting moderator approval before it appears publicly.",
+    "status": 0,
+    "postId": 3,
+    "userId": null,
+    "guestName": "Anonymous Visitor",
+    "guestEmail": "anon.visitor@example.com"
+  },
+  {
+    "id": 8,
+    "content": "This comment was flagged and rejected for violating community guidelines.",
+    "status": 3,
+    "postId": 4,
+    "userId": 5,
+    "guestName": null,
+    "guestEmail": null
+  },
+  {
+    "id": 9,
+    "content": "This comment was removed by an editor and moved to trash.",
+    "status": 4,
+    "postId": 4,
+    "userId": 6,
+    "guestName": null,
+    "guestEmail": null
+  },
+  {
+    "id": 10,
+    "content": "Looking forward to more posts like this one!",
+    "status": 1,
+    "postId": 5,
+    "userId": null,
+    "guestName": "Loyal Reader",
+    "guestEmail": "loyal.reader@example.com"
+  }
+]
