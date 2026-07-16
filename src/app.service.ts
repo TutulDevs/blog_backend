@@ -27,7 +27,7 @@ export class AppService {
 
     const [header, , ...body] = rows;
 
-    const theadHtml = `<tr>${header.map((cell) => `<th>${cell}</th>`).join('')}</tr>`;
+    const theadHtml = `<tr style="position: sticky;top: 0;">${header.map((cell) => `<th>${cell}</th>`).join('')}</tr>`;
     const tbodyHtml = body
       .map(
         (row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`,
