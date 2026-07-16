@@ -8,10 +8,10 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
-  ACTIVE,
-  AuthorStatus,
+  STATUS_ACTIVE,
+  UserStatus,
   DEFAULT_SALT_ROUNDS,
-  INACTIVE,
+  STATUS_INACTIVE,
   USER_VERIFY_CODE_TTL_MINUTES,
 } from '../../lib/coreconstants';
 import { generateRandomNumber } from 'src/lib/functions';
@@ -50,8 +50,8 @@ export class F_AuthService {
         email: dto.email,
         name: dto.name,
         password: hashedPassword,
-        status: AuthorStatus.PENDING_VERIFICATION,
-        isVerified: INACTIVE,
+        status: UserStatus.PENDING_VERIFICATION,
+        isVerified: STATUS_INACTIVE,
         verifyCode: generateRandomNumber(),
         verifyCodeExpiresAt,
       },
@@ -81,8 +81,8 @@ export class F_AuthService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        status: AuthorStatus.ACTIVE,
-        isVerified: ACTIVE,
+        status: UserStatus.ACTIVE,
+        isVerified: STATUS_ACTIVE,
         verifyCode: null,
         verifyCodeExpiresAt: null,
       },
@@ -109,18 +109,18 @@ export class F_AuthService {
       throw new UnauthorizedException('Invalid email/username or password');
     }
 
-    if (user.isVerified !== ACTIVE) {
+    if (user.isVerified !== STATUS_ACTIVE) {
       throw new UnauthorizedException('User is not verified');
     }
 
-    if (user.status !== AuthorStatus.ACTIVE) {
+    if (user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('User account is not active');
     }
 
     const payload = {
       id: user.id,
-      email: user.email,
       username: user.username,
+      status: user.status,
     };
 
     const accessToken = await this.jwtService.signAsync(payload);

@@ -5,8 +5,9 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { AuthorStatus } from '../../lib/coreconstants';
+import { UserStatus } from '../../lib/coreconstants';
 import { GetAllUsersQueryDto, UpdateUserDto } from './dto/user.dto';
+import { AuthenticatedUser } from 'src/common/guards/jwt-auth.guard';
 
 const USER_OMIT = {
   password: true,
@@ -19,12 +20,25 @@ export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAllUsers(query: GetAllUsersQueryDto) {
-    const { search, status, limit, page } = query;
+    const {
+      search,
+      status,
+      isVerified,
+      sortBy,
+      sortOrder,
+      page,
+      limit,
+      minPosts,
+    } = query;
 
     const where: Prisma.UserWhereInput = {};
 
     if (status !== undefined) {
       where.status = status;
+    }
+
+    if (isVerified !== undefined) {
+      where.isVerified = isVerified;
     }
 
     if (search) {
@@ -33,6 +47,26 @@ export class UserService {
         { username: { contains: search, mode: 'insensitive' } },
         { name: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // REMINDER: this method is very slow for thousands of data
+    if (minPosts !== undefined) {
+      if (minPosts === 0) {
+        where.posts = { none: {} };
+      } else if (minPosts > 0) {
+        const groupedUsers = await this.prisma.post.groupBy({
+          by: ['userId'],
+          having: {
+            userId: {
+              _count: { gte: minPosts },
+            },
+          },
+        });
+
+        const validUserIds = groupedUsers.map((group) => group.userId);
+
+        where.id = { in: validUserIds };
+      }
     }
 
     // Pagination
@@ -45,8 +79,9 @@ export class UserService {
         where,
         skip,
         take,
-        orderBy: { createdAt: 'desc' },
+        orderBy: !sortBy ? { createdAt: 'desc' } : { [sortBy]: sortOrder },
         omit: USER_OMIT,
+        include: { _count: { select: { posts: true } } },
       }),
     ]);
 
@@ -61,23 +96,47 @@ export class UserService {
     };
   }
 
-  async getUserByIdOrUsername(id_or_username: string) {
+  async getUserByIdOrUsername(
+    id_or_username: string,
+    authUser?: AuthenticatedUser,
+  ) {
     const parsedId = Number(id_or_username);
     const idValue = isNaN(parsedId) ? -1 : parsedId;
 
+    console.log('au:', authUser);
+
     const user = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ id: idValue }, { username: id_or_username }],
-      },
+      where: { OR: [{ id: idValue }, { username: id_or_username }] },
       omit: USER_OMIT,
     });
 
+    // no user
     if (!user) {
       throw new NotFoundException('User not found');
     }
 
+    // not auth
+    if (!authUser) {
+      const sanitizedUser = {
+        username: user.username,
+        name: user.name,
+      };
+      return { user: sanitizedUser };
+    }
+
+    // auth & own
+    if (authUser.id == user.id) {
+      return { user };
+    }
+
+    // auth but not own
     return {
-      user,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+      },
     };
   }
 
@@ -135,7 +194,7 @@ export class UserService {
     };
   }
 
-  async updateUserStatus(id: number, status: AuthorStatus) {
+  async updateUserStatus(id: number, status: UserStatus) {
     await this.getUserById(id);
 
     const user = await this.prisma.user.update({

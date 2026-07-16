@@ -2,16 +2,23 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
   IsEnum,
+  IsIn,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   Min,
 } from 'class-validator';
-import { Transform } from 'class-transformer';
-import { AuthorStatus } from '../../../lib/coreconstants';
+import { Transform, Type } from 'class-transformer';
+import {
+  STATUS_ACTIVE,
+  STATUS_INACTIVE,
+  UserStatus,
+} from '../../../lib/coreconstants';
+import { PaginationPageLimitDto } from 'src/common/dto/pagination.dto';
 
-export class GetAllUsersQueryDto {
+export class GetAllUsersQueryDto extends PaginationPageLimitDto {
   @ApiPropertyOptional({ example: 'john' })
   @IsOptional()
   @IsString()
@@ -24,29 +31,56 @@ export class GetAllUsersQueryDto {
   })
   search?: string;
 
-  @ApiPropertyOptional({ enum: AuthorStatus, example: AuthorStatus.ACTIVE })
+  @ApiPropertyOptional({ enum: UserStatus, example: UserStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(AuthorStatus, { message: 'Invalid status' })
-  status?: AuthorStatus;
+  @IsEnum(UserStatus, { message: 'Invalid status' })
+  status?: UserStatus;
 
-  // is verified
+  @ApiPropertyOptional({
+    description: 'Verification status: 0 for false, 1 for true',
+    enum: [STATUS_INACTIVE, STATUS_ACTIVE],
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber()
+  @IsIn([STATUS_INACTIVE, STATUS_ACTIVE], {
+    message: 'Verification status must be either 0 or 1',
+  })
+  isVerified?: number;
 
-  // has 0 posts, based on post count
+  // based on user's post count
+  @ApiPropertyOptional({
+    description:
+      'Minimum number of posts. 0 means no posts, 10 means >= 10 posts.',
+    example: 10,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0, { message: 'minPosts must be 0 or a positive number' })
+  minPosts?: number;
 
   // order by
-
-  // Pagination
-  @ApiPropertyOptional({ example: 1 })
+  @ApiPropertyOptional({
+    example: 'createdAt',
+    description: 'Field to sort by',
+  })
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  page: number = 1;
+  @IsString()
+  @IsIn(['createdAt', 'name', 'username', 'email'], {
+    message: 'Invalid sortBy field',
+  })
+  sortBy?: string = 'createdAt';
 
-  @ApiPropertyOptional({ example: 10 })
+  @ApiPropertyOptional({
+    example: 'desc',
+    enum: ['asc', 'desc'],
+    description: 'Sort direction',
+  })
   @IsOptional()
-  @IsNumber()
-  @Min(1)
-  limit: number = 10;
+  @IsString()
+  @IsIn(['asc', 'desc'], { message: 'sortOrder must be either asc or desc' })
+  sortOrder?: 'asc' | 'desc' = 'desc';
 }
 
 export class UpdateUserDto {
@@ -64,9 +98,9 @@ export class UpdateUserDto {
 }
 
 export class UpdateUserStatusDto {
-  @ApiProperty({ enum: AuthorStatus, example: AuthorStatus.ACTIVE })
-  @IsEnum(AuthorStatus)
-  status: AuthorStatus;
+  @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
+  @IsEnum(UserStatus)
+  status: UserStatus;
 }
 
 export class UpdateUserUsernameDto {

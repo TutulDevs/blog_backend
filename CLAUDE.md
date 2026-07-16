@@ -40,7 +40,7 @@ Staff (editorial team) and Author (content writers) are kept in **separate table
 
 ### Status & Role Enums
 
-Every `status`/`role` column above is a plain numeric `Int` in Prisma (Prisma enums are string-backed only, so they can't express numeric codes). The authoritative numeric values live in `src/lib/coreconstants.ts` — always import and use these enums (`StaffRole`, `StaffStatus`, `AuthorStatus`, `PostStatus`, `CommentStatus`, `CategoryStatus`, `NewsletterSubscriptionStatus`) instead of hardcoding integers when reading or writing these columns.
+Every `status`/`role` column above is a plain numeric `Int` in Prisma (Prisma enums are string-backed only, so they can't express numeric codes). The authoritative numeric values live in `src/lib/coreconstants.ts` — always import and use these enums (`StaffRole`, `StaffStatus`, `UserStatus`, `PostStatus`, `CommentStatus`, `CategoryStatus`, `NewsletterSubscriptionStatus`) instead of hardcoding integers when reading or writing these columns.
 
 ## Media Upload & Static Files
 

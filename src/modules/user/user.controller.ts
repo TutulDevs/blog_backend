@@ -18,7 +18,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import {
+  AuthenticatedUser,
+  JwtAuthGuard,
+} from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { StaffRole } from '../../lib/coreconstants';
@@ -29,6 +32,8 @@ import {
   UpdateUserUsernameDto,
 } from './dto/user.dto';
 import { TransformPostInterceptor } from '../../common/interceptors/transform_post.interceptor';
+import { OptionalAuth } from 'src/common/decorators/optional-auth.decorator';
+import { UserEntity } from 'src/common/decorators/user.decorator';
 
 @ApiTags('user')
 @ApiBearerAuth()
@@ -56,7 +61,8 @@ export class UserController {
   }
 
   @Get(':id_or_username')
-  @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
+  // @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
+  @OptionalAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get user by id/username',
@@ -73,8 +79,11 @@ export class UserController {
     status: 404,
     description: 'User not found',
   })
-  getUserByIdOrUsername(@Param('id_or_username') id_or_username: string) {
-    return this.userService.getUserByIdOrUsername(id_or_username);
+  getUserByIdOrUsername(
+    @Param('id_or_username') id_or_username: string,
+    @UserEntity() user: AuthenticatedUser,
+  ) {
+    return this.userService.getUserByIdOrUsername(id_or_username, user);
   }
 
   @Get('username/:username')

@@ -1,5 +1,5 @@
-export const INACTIVE = 0;
-export const ACTIVE = 1;
+export const STATUS_INACTIVE = 0;
+export const STATUS_ACTIVE = 1;
 
 export enum StaffRole {
   ADMIN = 1,
@@ -13,7 +13,7 @@ export enum StaffStatus {
   TERMINATED = 3,
 }
 
-export enum AuthorStatus {
+export enum UserStatus {
   INACTIVE = 0,
   ACTIVE = 1,
   SUSPENDED = 2,

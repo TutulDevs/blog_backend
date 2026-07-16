@@ -19,7 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { StaffService } from './staff.service';
 import {
-  AuthenticatedStaff,
+  AuthenticatedUser,
   JwtAuthGuard,
 } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -55,7 +55,7 @@ export class StaffController {
     description: 'Not logged in or unauthorized',
   })
   getAllStaffs(
-    @UserEntity() user: AuthenticatedStaff,
+    @UserEntity() user: AuthenticatedUser,
     @Query() query: GetAllStaffsQueryDto,
   ) {
     return this.staffService.getAllStaffs(user.role, query);
