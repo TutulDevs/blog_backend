@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
-import { IS_OPTIONAL_AUTH_KEY } from '../decorators/optional-auth.decorator';
+import { IS_OPTIONAL_AUTH_KEY } from '../decorators/optional_auth.decorator';
 
 export interface StaffJwtPayload {
   id: number;
