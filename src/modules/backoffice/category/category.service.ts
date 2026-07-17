@@ -1,10 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { GetAllCategoriesQueryDto } from './dto/category.dto';
+import {
+  CreateCategoryDto,
+  GetAllCategoriesQueryDto,
+  UpdateCategoryDto,
+} from './dto/category.dto';
 
 @Injectable()
-export class CategoryService {
+export class B_CategoryService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async findCategoryByIdOrThrow(id: number) {
@@ -40,7 +48,6 @@ export class CategoryService {
         skip,
         take,
         orderBy: !sortBy ? { createdAt: 'desc' } : { [sortBy]: sortOrder },
-        // include: { _count: { select: { posts: true } } },
       }),
     ]);
 
@@ -56,17 +63,55 @@ export class CategoryService {
   }
 
   async getCategoryById(id: number) {
-    return await this.findCategoryByIdOrThrow(id);
-  }
-
-  async getPostsByCategoryId(id: number) {
-    await this.findCategoryByIdOrThrow(id);
-
-    const category = await this.prisma.category.findUnique({
-      where: { id },
-      include: { posts: true },
-    });
+    const category = await this.findCategoryByIdOrThrow(id);
 
     return { category };
+  }
+
+  async createCategory(dto: CreateCategoryDto) {
+    try {
+      const category = await this.prisma.category.create({ data: dto });
+
+      return { category };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Category name already exists');
+      }
+
+      throw error;
+    }
+  }
+
+  async updateCategory(id: number, dto: UpdateCategoryDto) {
+    await this.findCategoryByIdOrThrow(id);
+
+    try {
+      const category = await this.prisma.category.update({
+        where: { id },
+        data: dto,
+      });
+
+      return { category };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Category name already exists');
+      }
+
+      throw error;
+    }
+  }
+
+  async deleteCategory(id: number) {
+    await this.findCategoryByIdOrThrow(id);
+
+    await this.prisma.category.delete({ where: { id } });
+
+    return { message: 'Category deleted successfully' };
   }
 }

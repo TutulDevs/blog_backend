@@ -11,8 +11,8 @@ import { F_CommentModule } from './comment/comment.module';
   imports: [
     AuthModule,
     F_UserModule,
-    F_PostModule,
     F_CategoryModule,
+    F_PostModule,
     F_CommentModule,
   ],
   controllers: [F_AuthController],
