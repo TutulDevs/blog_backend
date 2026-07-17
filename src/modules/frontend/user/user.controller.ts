@@ -100,6 +100,9 @@ export class UserController {
     return this.userService.getUserByUsername(username);
   }
 
+  // user details will have posts list
+  // if own posts, show all status posts
+
   @Get(':id')
   @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
   @HttpCode(HttpStatus.OK)

@@ -4,6 +4,7 @@ import {
   IsIn,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
 } from 'class-validator';
@@ -11,7 +12,7 @@ import { Type } from 'class-transformer';
 import { PostStatus } from '../../../../lib/coreconstants';
 import { PaginationPageLimitDto } from 'src/common/dto/pagination.dto';
 
-export class GetAllMyPostsQueryDto extends PaginationPageLimitDto {
+export class GetAllPostsQueryDto extends PaginationPageLimitDto {
   @ApiPropertyOptional({ example: 'nestjs' })
   @IsOptional()
   @IsString()
@@ -28,11 +29,11 @@ export class GetAllMyPostsQueryDto extends PaginationPageLimitDto {
   @IsInt()
   categoryId?: number;
 
-  // @ApiPropertyOptional({ example: 1 })
-  // @IsOptional()
-  // @Type(() => Number)
-  // @IsInt()
-  // userId?: number;
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  userId?: number;
 
   @ApiPropertyOptional({
     example: 'createdAt',
@@ -52,14 +53,6 @@ export class GetAllMyPostsQueryDto extends PaginationPageLimitDto {
   @IsString()
   @IsIn(['asc', 'desc'], { message: 'sortOrder must be either asc or desc' })
   sortOrder?: 'asc' | 'desc' = 'desc';
-}
-
-export class GetAllPostsQueryDto extends GetAllMyPostsQueryDto {
-  @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  userId?: number;
 }
 
 export class CreatePostDto {
@@ -112,12 +105,14 @@ export class UpdatePostDto {
   @Type(() => Number)
   @IsInt()
   categoryId?: number;
-}
 
-export class UpdatePostStatusDto {
-  @ApiProperty({ enum: PostStatus, example: PostStatus.PUBLISHED })
-  @IsEnum(PostStatus)
-  status: PostStatus;
+  @ApiPropertyOptional({
+    description: 'Status (only archive)',
+    example: PostStatus.ARCHIVED,
+  })
+  @IsOptional()
+  @IsNumber()
+  status?: number;
 }
 
 export class UpdatePostSlugDto {
