@@ -15,7 +15,7 @@ import {
 import {
   AuthenticatedUser,
   isStaffUser,
-} from 'src/common/guards/jwt-auth.guard';
+} from 'src/common/guards/jwt_auth.guard';
 
 const COMMENT_INCLUDE = {
   user: {

@@ -113,9 +113,9 @@ export class F_AuthService {
       throw new UnauthorizedException('User is not verified');
     }
 
-    if (user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('User account is not active');
-    }
+    // if (user.status !== UserStatus.ACTIVE) {
+    //   throw new UnauthorizedException('User account is not active');
+    // }
 
     const payload = {
       id: user.id,

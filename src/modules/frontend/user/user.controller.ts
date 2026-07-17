@@ -15,8 +15,7 @@ import { UserService } from './user.service';
 import {
   AuthenticatedUser,
   JwtAuthGuard,
-} from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
+} from '../../../common/guards/jwt_auth.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { StaffRole } from '../../../lib/coreconstants';
 import {
@@ -34,7 +33,7 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('user')
 @ApiBearerAuth()
 @FrontendController('user')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -57,7 +56,6 @@ export class UserController {
   }
 
   @Get(':id_or_username')
-  // @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
   @OptionalAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

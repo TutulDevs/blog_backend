@@ -16,8 +16,8 @@ import {
   AuthenticatedUser,
   isStaffUser,
   JwtAuthGuard,
-} from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
+} from '../../../common/guards/jwt_auth.guard';
+import { B_RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { StaffRole } from '../../../lib/coreconstants';
 import {
@@ -33,7 +33,7 @@ import { BackofficeApiTags } from 'src/common/decorators/api_tag.decorator';
 @BackofficeApiTags('staff')
 @ApiBearerAuth()
 @BackofficeController('staff')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, B_RolesGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}

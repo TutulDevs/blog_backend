@@ -6,7 +6,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
-// import { AuthModule } from './modules/auth/auth.module';
 import { FrontendModule } from './modules/frontend/frontend.module';
 import { BackofficeModule } from './modules/backoffice/backoffice.module';
 
@@ -15,7 +14,6 @@ import { BackofficeModule } from './modules/backoffice/backoffice.module';
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 60 }]),
     PrismaModule,
-    // AuthModule
 
     BackofficeModule,
     FrontendModule,

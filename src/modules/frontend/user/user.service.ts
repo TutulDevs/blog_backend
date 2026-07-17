@@ -7,7 +7,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { UserStatus } from '../../../lib/coreconstants';
 import { GetAllUsersQueryDto, UpdateUserDto } from './dto/user.dto';
-import { AuthenticatedUser } from 'src/common/guards/jwt-auth.guard';
+import { AuthenticatedUser } from 'src/common/guards/jwt_auth.guard';
 
 const USER_OMIT = {
   password: true,

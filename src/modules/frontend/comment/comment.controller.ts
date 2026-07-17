@@ -17,8 +17,7 @@ import { CommentService } from './comment.service';
 import {
   AuthenticatedUser,
   JwtAuthGuard,
-} from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
+} from '../../../common/guards/jwt_auth.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { UserEntity } from '../../../common/decorators/user.decorator';
@@ -36,7 +35,7 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('comments')
 @ApiBearerAuth()
 @FrontendController('comments')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}

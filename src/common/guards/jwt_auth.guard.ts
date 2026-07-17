@@ -54,10 +54,28 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const value = await this.jwtService.verifyAsync<AuthenticatedUser>(token);
-      request.user = value;
-    } catch {
+      const payload =
+        await this.jwtService.verifyAsync<AuthenticatedUser>(token);
+
+      // --- SECURITY ENHANCEMENT START ---
+      const url = request.originalUrl;
+
+      // If hitting a backoffice route, explicitly reject non-staff payloads
+      if (url.startsWith('/api/b') && !isStaffUser(payload)) {
+        throw new UnauthorizedException('Invalid token for backoffice access');
+      }
+
+      // If hitting a frontend route, explicitly reject staff payloads (optional, but safer)
+      if (url.startsWith('/api/f') && isStaffUser(payload)) {
+        throw new UnauthorizedException('Invalid token for client application');
+      }
+      // --- SECURITY ENHANCEMENT END ---
+
+      request.user = payload;
+    } catch (error) {
       if (isOptionalAuth) return true; // pass if optional
+
+      if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Invalid or expired token');
     }
 
