@@ -11,31 +11,33 @@ import { PostStatus } from '../../lib/coreconstants';
 import { slugify } from '../../lib/functions';
 import {
   CreatePostDto,
+  GetAllMyPostsQueryDto,
   GetAllPostsQueryDto,
   UpdatePostDto,
 } from './dto/post.dto';
-import { AuthenticatedUser } from 'src/common/guards/jwt-auth.guard';
+import {
+  AuthenticatedUser,
+  isStaffUser,
+} from 'src/common/guards/jwt-auth.guard';
 
 const POST_INCLUDE = {
   user: {
     select: { id: true, username: true, name: true },
   },
-  category: true,
+  category: {
+    select: { id: true, name: true },
+  },
 } as Prisma.PostInclude;
 
 @Injectable()
 export class PostService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private isStaff(authUser: AuthenticatedUser): boolean {
-    return typeof authUser.role === 'number';
-  }
-
   private assertOwnerOrStaff(
     post: { userId: number },
     authUser: AuthenticatedUser,
   ) {
-    if (this.isStaff(authUser)) return;
+    if (isStaffUser(authUser)) return;
 
     if (post.userId !== authUser.id) {
       throw new ForbiddenException(
@@ -52,37 +54,6 @@ export class PostService {
     }
 
     return post;
-  }
-
-  async createPost(userId: number, dto: CreatePostDto) {
-    const slug = slugify(dto.slug ?? dto.title);
-
-    try {
-      const post = await this.prisma.post.create({
-        data: {
-          title: dto.title,
-          content: dto.content,
-          slug,
-          coverImage: dto.coverImage,
-          categoryId: dto.categoryId,
-          userId,
-          status: PostStatus.DRAFT,
-        },
-        include: POST_INCLUDE,
-      });
-
-      return { post };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-          throw new ConflictException('Slug already in use');
-        }
-        if (error.code === 'P2003') {
-          throw new BadRequestException('Invalid category reference');
-        }
-      }
-      throw error;
-    }
   }
 
   async getAllPosts(query: GetAllPostsQueryDto) {
@@ -114,6 +85,7 @@ export class PostService {
     if (search) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: 'insensitive' } },
         { content: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -143,6 +115,82 @@ export class PostService {
     };
   }
 
+  async getAllPostsByUsername(
+    usernameParam: string,
+    query: GetAllMyPostsQueryDto,
+    reqUser?: AuthenticatedUser,
+  ) {
+    const reqUsername =
+      reqUser && !isStaffUser(reqUser) ? reqUser.username : undefined;
+    const username = usernameParam || reqUsername || '';
+
+    if (!username) {
+      throw new BadRequestException('No username found');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+      select: { id: true, username: true, name: true, email: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Invalid user');
+    }
+
+    const { search, status, categoryId, sortBy, sortOrder, page, limit } =
+      query;
+
+    const where: Prisma.PostWhereInput = { user: { username } };
+
+    if (status !== undefined) {
+      where.status = status;
+    }
+
+    if (categoryId !== undefined) {
+      where.categoryId = categoryId;
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const take = limit;
+
+    const [totalFilteredPosts, posts] = await Promise.all([
+      this.prisma.post.count({ where }),
+      this.prisma.post.findMany({
+        where,
+        skip,
+        take,
+        orderBy: !sortBy ? { createdAt: 'desc' } : { [sortBy]: sortOrder },
+        include: { category: { select: { id: true, name: true } } },
+      }),
+    ]);
+
+    return {
+      meta: {
+        totalCount: totalFilteredPosts,
+        page,
+        limit,
+        totalPages: Math.ceil(totalFilteredPosts / limit),
+      },
+      user:
+        user.username == reqUsername
+          ? user
+          : {
+              id: user.id,
+              username: user.username,
+              name: user.name,
+            },
+      list: posts,
+    };
+  }
+
   async getPostBySlug(slug: string) {
     const post = await this.prisma.post.findUnique({
       where: { slug },
@@ -154,6 +202,37 @@ export class PostService {
     }
 
     return { post };
+  }
+
+  async createPost(userId: number, dto: CreatePostDto) {
+    const slug = slugify(dto.slug ?? dto.title);
+
+    try {
+      const post = await this.prisma.post.create({
+        data: {
+          title: dto.title,
+          content: dto.content,
+          slug,
+          coverImage: dto.coverImage,
+          categoryId: dto.categoryId,
+          userId,
+          status: PostStatus.DRAFT,
+        },
+        include: POST_INCLUDE,
+      });
+
+      return { post };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new ConflictException('Slug already in use');
+        }
+        if (error.code === 'P2003') {
+          throw new BadRequestException('Invalid category reference');
+        }
+      }
+      throw error;
+    }
   }
 
   async updatePost(

@@ -9,11 +9,22 @@ import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_OPTIONAL_AUTH_KEY } from '../decorators/optional-auth.decorator';
 
-export interface AuthenticatedUser {
+export interface StaffJwtPayload {
   id: number;
   email: string;
   role: number;
 }
+
+export interface UserJwtPayload {
+  id: number;
+  username: string;
+  status: number;
+}
+
+export type AuthenticatedUser = StaffJwtPayload | UserJwtPayload;
+
+export const isStaffUser = (user: AuthenticatedUser): user is StaffJwtPayload =>
+  'role' in user;
 
 export interface RequestWithStaff extends Request {
   user: AuthenticatedUser;
@@ -43,9 +54,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const value = await this.jwtService.verifyAsync(token);
-      // STAFF { id: 1, email: 'admin@email.com', role: 1, iat: 1784115890, exp: 1784116190 }
-      // USER { id: 1, username: 'k_007', status: 1, iat: 1784115890, exp: 1784116190 }
+      const value = await this.jwtService.verifyAsync<AuthenticatedUser>(token);
       request.user = value;
     } catch {
       if (isOptionalAuth) return true; // pass if optional

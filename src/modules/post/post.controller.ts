@@ -8,7 +8,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
-  Post as HttpPost,
+  Post,
   Query,
   UseGuards,
   UseInterceptors,
@@ -32,6 +32,7 @@ import { StaffRole } from '../../lib/coreconstants';
 import { TransformPostInterceptor } from '../../common/interceptors/transform_post.interceptor';
 import {
   CreatePostDto,
+  GetAllMyPostsQueryDto,
   GetAllPostsQueryDto,
   UpdatePostCoverImageDto,
   UpdatePostDto,
@@ -47,7 +48,52 @@ import {
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  @HttpPost()
+  @Get()
+  @OptionalAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all posts' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns all the posts',
+  })
+  getAllPosts(@Query() query: GetAllPostsQueryDto) {
+    return this.postService.getAllPosts(query);
+  }
+
+  @Get(':username')
+  @OptionalAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all posts by username' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns all the posts by username',
+  })
+  getAllPostsByUsername(
+    @UserEntity() reqUser: AuthenticatedUser,
+    @Query() query: GetAllMyPostsQueryDto,
+    @Param('username') username: string,
+  ) {
+    return this.postService.getAllPostsByUsername(
+      username.trim().toLowerCase(),
+      query,
+      reqUser,
+    );
+  }
+
+  @Get(':slug')
+  @OptionalAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get post by slug' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the post',
+  })
+  @ApiResponse({ status: 404, description: 'Post not found' })
+  getPostBySlug(@Param('slug') slug: string) {
+    return this.postService.getPostBySlug(slug);
+  }
+
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new post' })
   @ApiResponse({ status: 201, description: 'Post created successfully' })
@@ -62,31 +108,6 @@ export class PostController {
     @UserEntity() authUser: AuthenticatedUser,
   ) {
     return this.postService.createPost(authUser.id, dto);
-  }
-
-  @Get()
-  @OptionalAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get all posts' })
-  @ApiResponse({
-    status: 200,
-    description: 'Request successful, returns all the posts',
-  })
-  getAllPosts(@Query() query: GetAllPostsQueryDto) {
-    return this.postService.getAllPosts(query);
-  }
-
-  @Get(':slug')
-  @OptionalAuth()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get post by slug' })
-  @ApiResponse({
-    status: 200,
-    description: 'Request successful, returns the post',
-  })
-  @ApiResponse({ status: 404, description: 'Post not found' })
-  getPostBySlug(@Param('slug') slug: string) {
-    return this.postService.getPostBySlug(slug);
   }
 
   @Patch(':id')

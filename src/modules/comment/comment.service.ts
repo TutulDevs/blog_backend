@@ -12,7 +12,10 @@ import {
   GetAllCommentsQueryDto,
   UpdateCommentDto,
 } from './dto/comment.dto';
-import { AuthenticatedUser } from 'src/common/guards/jwt-auth.guard';
+import {
+  AuthenticatedUser,
+  isStaffUser,
+} from 'src/common/guards/jwt-auth.guard';
 
 const COMMENT_INCLUDE = {
   user: {
@@ -24,15 +27,11 @@ const COMMENT_INCLUDE = {
 export class CommentService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private isStaff(authUser: AuthenticatedUser): boolean {
-    return typeof authUser.role === 'number';
-  }
-
   private assertOwnerOrStaff(
     comment: { userId: number | null },
     authUser: AuthenticatedUser,
   ) {
-    if (this.isStaff(authUser)) return;
+    if (isStaffUser(authUser)) return;
 
     if (comment.userId === null || comment.userId !== authUser.id) {
       throw new ForbiddenException(
@@ -62,7 +61,7 @@ export class CommentService {
   async createComment(dto: CreateCommentDto, authUser?: AuthenticatedUser) {
     await this.assertPostExists(dto.postId);
 
-    const isAuthor = !!authUser && !this.isStaff(authUser);
+    const isAuthor = !!authUser && !isStaffUser(authUser);
 
     if (!isAuthor && (!dto.guestName || !dto.guestEmail)) {
       throw new BadRequestException(

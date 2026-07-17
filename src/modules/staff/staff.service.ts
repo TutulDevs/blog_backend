@@ -8,7 +8,10 @@ import { Prisma } from '@prisma/client';
 export class StaffService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAllStaffs(staffRole: StaffRole, query: GetAllStaffsQueryDto) {
+  async getAllStaffs(
+    staffRole: StaffRole | undefined,
+    query: GetAllStaffsQueryDto,
+  ) {
     const isAdmin = staffRole === StaffRole.ADMIN;
 
     const { search, status, role, limit, page } = query;

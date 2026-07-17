@@ -20,6 +20,7 @@ import {
 import { StaffService } from './staff.service';
 import {
   AuthenticatedUser,
+  isStaffUser,
   JwtAuthGuard,
 } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -58,7 +59,10 @@ export class StaffController {
     @UserEntity() user: AuthenticatedUser,
     @Query() query: GetAllStaffsQueryDto,
   ) {
-    return this.staffService.getAllStaffs(user.role, query);
+    return this.staffService.getAllStaffs(
+      isStaffUser(user) ? user.role : undefined,
+      query,
+    );
   }
 
   @Get(':id')

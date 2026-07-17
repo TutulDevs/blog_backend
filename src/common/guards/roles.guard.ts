@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { StaffRole } from '../../lib/coreconstants';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { RequestWithStaff } from './jwt-auth.guard';
+import { isStaffUser, RequestWithStaff } from './jwt-auth.guard';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -24,9 +24,10 @@ export class RolesGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<RequestWithStaff>();
-    const staffRole = request.user?.role;
+    const staffRole =
+      request.user && isStaffUser(request.user) ? request.user.role : undefined;
 
-    if (!requiredRoles.includes(staffRole)) {
+    if (staffRole === undefined || !requiredRoles.includes(staffRole)) {
       throw new ForbiddenException(
         'You do not have permission to access this resource',
       );
