@@ -6,3 +6,12 @@ export const generateRandomNumber = (length = 6): number => {
 
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+export const slugify = (text: string): string => {
+  return text
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};

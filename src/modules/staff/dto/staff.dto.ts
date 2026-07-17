@@ -1,13 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  Allow,
-  IsEnum,
-  IsNumber,
-  IsOptional,
-  isString,
-  IsString,
-  Min,
-} from 'class-validator';
+import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { StaffRole, StaffStatus } from '../../../lib/coreconstants';
 import { Transform } from 'class-transformer';
 

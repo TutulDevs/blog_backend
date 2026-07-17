@@ -34,21 +34,94 @@ true }))`) so DTO decorators are actually enforced.
 Do not silently skip a missing prerequisite — fix it as part of the task,
 since every endpoint depends on it.
 
+Read one sibling module in full before writing anything (e.g.
+`src/modules/user/`) — section 1a below tells you what to look for so one
+pass covers it, instead of re-deriving these conventions file-by-file every
+time.
+
 ## 1. File layout
 
-For a feature named `<feature>` (e.g. `posts`), create/use:
+Feature modules live under `src/modules/<feature>/` (not `src/<feature>/`),
+e.g.:
 
 ```
-src/<feature>/
+src/modules/<feature>/
   dto/
-    create-<feature>.dto.ts
-    update-<feature>.dto.ts   # often `extends PartialType(CreateXDto)`
+    <feature>.dto.ts   # all DTOs for the feature in one file: Create/Update/GetAllQuery/etc.
   <feature>.controller.ts
   <feature>.service.ts
   <feature>.module.ts
 ```
 
 Register the new module in `AppModule.imports` (`src/app.module.ts`).
+
+## 1a. Codebase-specific conventions
+
+These are settled patterns in this repo (verified against
+`src/modules/user/`, `src/modules/staff/`, and `src/common/guards/`) — apply
+them directly instead of re-discovering them per endpoint. Re-verify by
+grepping if a memory here seems stale (e.g. a decorator/guard renamed).
+
+**Dual-identity auth model.** `Staff` (admin/editor, has `role`) and `User`
+(blog author/content writer, no `role` field) are separate Prisma models,
+both logging in through the same JWT secret but with different payload
+shapes:
+
+- Staff token payload: `{ id, email, role }`
+- User/author token payload: `{ id, username, status }` — **no `role` key**
+
+`AuthenticatedUser` (`src/common/guards/jwt-auth.guard.ts`) types `role` as
+always a `number`, but it is `undefined` at runtime on User/author tokens.
+To branch on staff-vs-author in a service, use:
+
+```ts
+const isStaff = typeof authUser.role === 'number';
+```
+
+not `authUser.role !== undefined` — that specific comparison fails to
+compile (TS2367, no overlap between `number` and `undefined`).
+
+**Guard/decorator wiring**, applied at the controller class level, then
+tuned per-route:
+
+- `@UseGuards(JwtAuthGuard, RolesGuard)` on the controller class.
+  `RolesGuard` is a no-op pass-through on any route without `@Roles(...)`
+  metadata, so it's safe to apply broadly.
+- `@Roles(StaffRole.ADMIN, StaffRole.EDITOR, ...)` on routes restricted to
+  specific staff roles (checked against `request.user.role`).
+- `@OptionalAuth()` on routes that should work both logged-out and logged-in
+  (public reader-facing GETs) — lets `JwtAuthGuard` skip its throw when no/
+  invalid token is present, while still populating `request.user` if a valid
+  one is.
+- `@UserEntity()` param decorator (`src/common/decorators/user.decorator.ts`)
+  pulls `request.user: AuthenticatedUser` into a handler.
+- **Ownership pattern** for resources owned by a `User`/author row: compare
+  `resource.userId === authUser.id`, with a staff bypass (`isStaff` above)
+  for moderation actions. Mirrors `UserService.getUserByIdOrUsername`'s
+  own-vs-not-own branching.
+
+**Service/Prisma conventions:**
+
+- Prisma `omit` (not `select`) strips sensitive fields, e.g.
+  `{ password: true, resetCode: true } as Prisma.<Model>Omit`.
+- Map `Prisma.PrismaClientKnownRequestError` codes explicitly:
+  `P2002` (unique constraint) → `ConflictException`; `P2003` (FK violation)
+  → `BadRequestException`.
+- Paginated list methods return `{ meta: { totalCount, page, limit,
+totalPages }, list }`; single-record methods return `{ <entityName>:
+record }` (e.g. `{ user }`, `{ post }`) — not the bare record.
+- List-query DTOs extend `PaginationPageLimitDto`
+  (`src/common/dto/pagination.dto.ts`); `sortBy`/`sortOrder` use
+  `@IsIn([...])` allow-lists with defaults (`sortBy = 'createdAt'`,
+  `sortOrder: 'asc' | 'desc' = 'desc'`).
+
+**Response envelope:** `TransformPostInterceptor`
+(`src/common/interceptors/transform_post.interceptor.ts`), applied via
+`@UseInterceptors(TransformPostInterceptor)` on the controller class, wraps
+every response in `{ code, data, timestamp }`. Because of this, a delete
+endpoint should return a small body (e.g. `{ message: 'X deleted
+successfully' }`) with `@HttpCode(HttpStatus.OK)` rather than a true empty
+204 — a 204 with a wrapped body is a contradiction.
 
 ## 2. DTOs
 

@@ -9,6 +9,9 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { AuthModule } from './modules/auth/auth.module';
 import { StaffModule } from './modules/staff/staff.module';
 import { UserModule } from './modules/user/user.module';
+import { PostModule } from './modules/post/post.module';
+import { CategoryModule } from './modules/category/category.module';
+import { CommentModule } from './modules/comment/comment.module';
 
 @Module({
   imports: [
@@ -18,6 +21,9 @@ import { UserModule } from './modules/user/user.module';
     AuthModule,
     StaffModule,
     UserModule,
+    PostModule,
+    CommentModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

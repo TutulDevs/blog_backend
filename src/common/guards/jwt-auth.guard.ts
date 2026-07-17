@@ -35,7 +35,7 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithStaff>();
     const token = this.extractTokenFromHeader(request);
 
-    // console.log('jwt_g:', isOptionalAuth, request.originalUrl);
+    // console.log('jwt_g:', request.originalUrl, isOptionalAuth);
 
     if (!token) {
       if (isOptionalAuth) return true; // pass if optional
@@ -44,7 +44,8 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const value = await this.jwtService.verifyAsync(token);
-      // { id: 1, email: 'admin@email.com', role: 1, iat: 1784115890, exp: 1784116190 }
+      // STAFF { id: 1, email: 'admin@email.com', role: 1, iat: 1784115890, exp: 1784116190 }
+      // USER { id: 1, username: 'k_007', status: 1, iat: 1784115890, exp: 1784116190 }
       request.user = value;
     } catch {
       if (isOptionalAuth) return true; // pass if optional

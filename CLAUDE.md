@@ -29,13 +29,13 @@ A backend API service for a Blog Management Site (CMS) supporting editorial publ
 
 ## Database Entities (Prisma)
 
-Staff (editorial team) and Author (content writers) are kept in **separate tables** — they are not a single "user" model.
+Staff (editorial team) and User (content writers) are kept in **separate tables** — they are not a single "user" model.
 
-- **Staff**: Admins and editors (`src/prisma`). Has `role` (`ADMIN`/`EDITOR`), `status`, and `resetCode` (used for the forgot-password flow). Does not author posts.
-- **Author**: Blog writers. Has `username`, `status`, and a `posts`/`comments` relation. Authenticates and writes content, but has no `role` field.
-- **Post**: Articles, connected to an `Author` (not `Staff`) and an optional `Category`. Has a `status` field (draft/published/etc.) instead of a plain boolean.
+- **Staff**: Admins and editors (`src/prisma`). Has `role` (`ADMIN`/`EDITOR`), `status`, and `resetCode` (used for the forgot-password flow). Does not user posts.
+- **User**: Blog writers. Has `username`, `status`, and a `posts`/`comments` relation. Authenticates and writes content, but has no `role` field.
+- **Post**: Articles, connected to an `User` (not `Staff`) and an optional `Category`. Has a `status` field (draft/published/etc.) instead of a plain boolean.
 - **Category**: Editorial classification for posts, with its own `status`.
-- **Comment**: Belongs to a `Post`, optionally to an `Author` (nullable, so guest comments are supported via `guestName`/`guestEmail`), with a moderation `status`.
+- **Comment**: Belongs to a `Post`, optionally to an `User` (nullable, so guest comments are supported via `guestName`/`guestEmail`), with a moderation `status`.
 - **Newsletter**: Email subscriber list with a `status` (subscribed/unsubscribed/pending).
 
 ### Status & Role Enums

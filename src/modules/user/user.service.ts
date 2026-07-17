@@ -103,8 +103,6 @@ export class UserService {
     const parsedId = Number(id_or_username);
     const idValue = isNaN(parsedId) ? -1 : parsedId;
 
-    console.log('au:', authUser);
-
     const user = await this.prisma.user.findFirst({
       where: { OR: [{ id: idValue }, { username: id_or_username }] },
       omit: USER_OMIT,
