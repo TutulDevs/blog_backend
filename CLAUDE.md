@@ -21,11 +21,68 @@ A backend API service for a Blog Management Site (CMS) supporting editorial publ
 
 ## Codebase Architecture (NestJS Conventions)
 
-- **Modular Design**: Group logic by features using NestJS modules (e.g., `src/auth/`, `src/posts/`, `src/categories/`).
+- **Modular Design**: Group logic by features using NestJS modules under `src/modules/backoffice/<feature>/` or `src/modules/frontend/<feature>/` (see API Surface Split below) — never a bare `src/<feature>/`.
 - **Dependency Injection**: Always use NestJS decorators (`@Injectable()`, `@Controller()`, `@Module()`) to manage dependency injections. Do not instantiate services manually.
 - **DTOs & Validation**: Use `class-validator` and `class-transformer` for request validation in Data Transfer Objects (DTOs).
 - **Prisma Integration**: Utilize a shared `PrismaService` extending `PrismaClient` to handle database connections.
 - **Environment Variables**: Use NestJS `@nestjs/config` Module to manage environment properties.
+
+## API Surface Split: Backoffice vs Frontend
+
+The API is structurally split into two namespaces that must never mix — separate
+modules, separate guards, separate DTOs. See `docs/backoffice-frontend-split-plan.md`
+for the full per-model migration plan and pattern this section summarizes.
+
+- **`/api/b/*` (backoffice)** — Staff (ADMIN/EDITOR) only. Moderation and admin actions:
+  banning/verifying users, publishing/rejecting posts, moderating comments, managing
+  categories. Lives under `src/modules/backoffice/<feature>/`.
+- **`/api/f/*` (frontend)** — User (blog writer) self-service and public reads. Lives
+  under `src/modules/frontend/<feature>/`.
+- Prefixes come from `@BackofficeController('<path>')` / `@FrontendController('<path>')`
+  (`src/common/decorators/route.decorator.ts`) combined with the global `api` prefix set
+  in `main.ts` — do not use the bare `@Controller()` decorator on feature controllers.
+  Mirror with `@BackofficeApiTags('<name>')` / `@FrontendApiTags('<name>')` for Swagger
+  grouping.
+- **Naming convention**: backoffice controllers/services/modules get a `B_` prefix
+  (`B_UserController`, `B_UserService`, `B_UserModule`); frontend ones get an `F_` prefix
+  where a name would otherwise collide with a backoffice counterpart (`F_AuthController`).
+  Plain feature names (`PostController`, `CategoryService`) are fine on the frontend side
+  when there's no backoffice counterpart with the same name yet.
+
+### Guards (never mix these across the two sides)
+
+- **Backoffice**: `@UseGuards(B_JwtAuthGuard, B_RolesGuard)` on the controller class.
+  `B_JwtAuthGuard` (`src/common/guards/b_jwt_auth.guard.ts`) always requires a valid
+  Staff-shaped token — it has **no optional-auth path**, since every backoffice route is
+  staff-only. `B_RolesGuard` reads `@Roles(StaffRole.ADMIN, StaffRole.EDITOR, ...)`
+  metadata per-route; a route with no `@Roles(...)` allows any authenticated staff
+  member through.
+- **Frontend**: `@UseGuards(F_JwtAuthGuard)` on the controller class.
+  `F_JwtAuthGuard` (`src/common/guards/f_jwt_auth.guard.ts`) requires a valid User-shaped
+  token, but supports `@OptionalAuth()` (`src/common/decorators/optional_auth.decorator.ts`)
+  for routes that should work both logged-out and logged-in (public reader-facing GETs).
+  For mutating routes (POST/PATCH/DELETE), additionally add
+  `@UseGuards(UserStatusGuard)` at the **method** level (not controller-wide, so it
+  doesn't block optional-auth GETs) to block banned/suspended users
+  (`src/common/guards/user_status.guard.ts`).
+- Shared payload types (`StaffJwtPayload`, `UserJwtPayload`, `AuthenticatedUser`,
+  `isStaffUser`, `RequestWithStaff`) live in the neutral
+  `src/common/guards/auth-payload.types.ts` — import from there, not from either guard
+  file, to avoid the backoffice/frontend guards depending on each other.
+- **Never** re-add a single shared `JwtAuthGuard` that branches on `request.originalUrl`
+  to decide staff-vs-user — that was the old pattern and it's gone. Which guard you
+  attach to a controller *is* the enforcement.
+
+### Dual-surface models (e.g. `Post`)
+
+When the same row can be edited by both a staff member (full access) and its owning
+User (partial, self-service access), give each side its **own DTO and own service
+method** — never one shared "update everything" DTO reused across both. The DTO's
+`class-validator` whitelist (`whitelist: true` in the global `ValidationPipe`) is what
+actually enforces which fields each side can touch; a shared DTO with an `if (isStaff)`
+branch in the service does not enforce that boundary at the HTTP layer. Only the
+author-facing method needs an ownership check (`resource.userId === authUser.id`); the
+staff-facing method does not.
 
 ## Database Entities (Prisma)
 

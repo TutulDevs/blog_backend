@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserStatus } from '../../lib/coreconstants';
-import { isStaffUser } from './jwt_auth.guard';
+import { isStaffUser } from './auth-payload.types';
 import { USER_STATUS_KEY } from '../decorators/user_status.decorator';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class UserStatusGuard implements CanActivate {
     const user = request.user;
 
     // 1. Safety net: If it's a staff user or not logged in, pass it down
-    // (JwtAuthGuard already blocks staff on /api/f, and handles optional auth)
+    // (F_JwtAuthGuard already blocks staff on /api/f, and handles optional auth)
     if (!user || isStaffUser(user)) {
       return true;
     }
@@ -63,7 +63,7 @@ export class UserStatusGuard implements CanActivate {
 1. Any basic route is instantly locked down to ACTIVE users only. 
    If a user is PENDING_VERIFICATION or INACTIVE, they are automatically kicked out.
 @FrontendController('cart')
-@UseGuards(JwtAuthGuard, UserStatusGuard)
+@UseGuards(F_JwtAuthGuard, UserStatusGuard)
 export class CartController {
   @Get() // Only ACTIVE users can access this
   getCart() {
@@ -74,7 +74,7 @@ export class CartController {
 2. Use the @AllowedUserStatuses decorator to allow users who aren't fully active yet to hit specific endpoints (like viewing their profile setup or triggering a verification SMS).
 
 @FrontendController('profile')
-@UseGuards(JwtAuthGuard, UserStatusGuard)
+@UseGuards(F_JwtAuthGuard, UserStatusGuard)
 export class ProfileController {
   
   @Post('resend-verification')

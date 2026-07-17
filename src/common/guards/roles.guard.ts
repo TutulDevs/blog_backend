@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { StaffRole } from '../../lib/coreconstants';
 import { ROLES_KEY } from '../decorators/roles.decorator';
-import { isStaffUser, RequestWithStaff } from './jwt_auth.guard';
+import { isStaffUser, RequestWithStaff } from './auth-payload.types';
 
 @Injectable()
 export class B_RolesGuard implements CanActivate {

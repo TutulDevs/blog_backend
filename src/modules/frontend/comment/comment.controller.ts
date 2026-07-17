@@ -14,10 +14,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
-import {
-  AuthenticatedUser,
-  JwtAuthGuard,
-} from '../../../common/guards/jwt_auth.guard';
+import { AuthenticatedUser } from '../../../common/guards/auth-payload.types';
+import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
+import { UserStatusGuard } from '../../../common/guards/user_status.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { UserEntity } from '../../../common/decorators/user.decorator';
@@ -35,13 +34,14 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('comments')
 @ApiBearerAuth()
 @FrontendController('comments')
-@UseGuards(JwtAuthGuard)
+@UseGuards(F_JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post()
   @OptionalAuth()
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a new comment (logged-in author or guest)',
@@ -85,6 +85,7 @@ export class CommentController {
   }
 
   @Patch(':id')
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update comment content' })
   @ApiResponse({
@@ -126,6 +127,7 @@ export class CommentController {
   }
 
   @Delete(':id')
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete comment' })
   @ApiResponse({ status: 200, description: 'Comment deleted successfully' })

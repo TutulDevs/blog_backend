@@ -19,7 +19,7 @@ export class UserRegisterDto {
   @IsNotEmpty()
   email: string;
 
-  @ApiProperty({ example: 'password123' })
+  @ApiProperty({ example: 'Pass.1234' })
   @IsString()
   @IsNotEmpty()
   @MinLength(8)
@@ -46,14 +46,14 @@ export class UserVerifyEmailDto {
 
 export class UserLoginDto {
   @ApiProperty({
-    example: 'john@email.com',
+    example: 'amara_k',
     description: 'Email address or username',
   })
   @IsString()
   @IsNotEmpty()
   identifier: string;
 
-  @ApiProperty({ example: 'password123' })
+  @ApiProperty({ example: 'Pass.1234' })
   @IsString()
   @IsNotEmpty()
   password: string;

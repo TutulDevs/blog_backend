@@ -8,30 +8,15 @@ import { Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { IS_OPTIONAL_AUTH_KEY } from '../decorators/optional_auth.decorator';
+import {
+  AuthenticatedUser,
+  isStaffUser,
+  RequestWithStaff,
+} from './auth-payload.types';
 
-export interface StaffJwtPayload {
-  id: number;
-  email: string;
-  role: number;
-}
-
-export interface UserJwtPayload {
-  id: number;
-  username: string;
-  status: number;
-}
-
-export type AuthenticatedUser = StaffJwtPayload | UserJwtPayload;
-
-export const isStaffUser = (user: AuthenticatedUser): user is StaffJwtPayload =>
-  'role' in user;
-
-export interface RequestWithStaff extends Request {
-  user: AuthenticatedUser;
-}
-
+// Frontend guard: only accepts a User-shaped JWT payload (blog writers/readers).
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class F_JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly reflector: Reflector,
@@ -46,10 +31,8 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithStaff>();
     const token = this.extractTokenFromHeader(request);
 
-    // console.log('jwt_g:', request.originalUrl, isOptionalAuth);
-
     if (!token) {
-      if (isOptionalAuth) return true; // pass if optional
+      if (isOptionalAuth) return true;
       throw new UnauthorizedException('Not logged in');
     }
 
@@ -57,23 +40,13 @@ export class JwtAuthGuard implements CanActivate {
       const payload =
         await this.jwtService.verifyAsync<AuthenticatedUser>(token);
 
-      // --- SECURITY ENHANCEMENT START ---
-      const url = request.originalUrl;
-
-      // If hitting a backoffice route, explicitly reject non-staff payloads
-      if (url.startsWith('/api/b') && !isStaffUser(payload)) {
-        throw new UnauthorizedException('Invalid token for backoffice access');
-      }
-
-      // If hitting a frontend route, explicitly reject staff payloads (optional, but safer)
-      if (url.startsWith('/api/f') && isStaffUser(payload)) {
+      if (isStaffUser(payload)) {
         throw new UnauthorizedException('Invalid token for client application');
       }
-      // --- SECURITY ENHANCEMENT END ---
 
       request.user = payload;
     } catch (error) {
-      if (isOptionalAuth) return true; // pass if optional
+      if (isOptionalAuth) return true;
 
       if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Invalid or expired token');

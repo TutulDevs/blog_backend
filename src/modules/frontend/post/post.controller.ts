@@ -14,10 +14,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PostService } from './post.service';
-import {
-  AuthenticatedUser,
-  JwtAuthGuard,
-} from '../../../common/guards/jwt_auth.guard';
+import { AuthenticatedUser } from '../../../common/guards/auth-payload.types';
+import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
+import { UserStatusGuard } from '../../../common/guards/user_status.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { UserEntity } from '../../../common/decorators/user.decorator';
@@ -38,7 +37,7 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('posts')
 @ApiBearerAuth()
 @FrontendController('posts')
-@UseGuards(JwtAuthGuard)
+@UseGuards(F_JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class PostController {
   constructor(private readonly postService: PostService) {}
@@ -89,6 +88,7 @@ export class PostController {
   }
 
   @Post()
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new post' })
   @ApiResponse({ status: 201, description: 'Post created successfully' })
@@ -106,6 +106,7 @@ export class PostController {
   }
 
   @Patch(':id')
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update post (title/content/category)' })
   @ApiResponse({
@@ -150,6 +151,7 @@ export class PostController {
   }
 
   @Patch(':id/slug')
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update post slug' })
   @ApiResponse({
@@ -170,6 +172,7 @@ export class PostController {
   }
 
   @Patch(':id/cover-image')
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update post cover image' })
   @ApiResponse({
@@ -189,6 +192,7 @@ export class PostController {
   }
 
   @Delete(':id')
+  @UseGuards(UserStatusGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete post' })
   @ApiResponse({ status: 200, description: 'Post deleted successfully' })

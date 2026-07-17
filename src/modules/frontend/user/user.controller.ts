@@ -12,10 +12,8 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UserService } from './user.service';
-import {
-  AuthenticatedUser,
-  JwtAuthGuard,
-} from '../../../common/guards/jwt_auth.guard';
+import { AuthenticatedUser } from '../../../common/guards/auth-payload.types';
+import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { StaffRole } from '../../../lib/coreconstants';
 import {
@@ -33,7 +31,7 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('user')
 @ApiBearerAuth()
 @FrontendController('user')
-@UseGuards(JwtAuthGuard)
+@UseGuards(F_JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class UserController {
   constructor(private readonly userService: UserService) {}

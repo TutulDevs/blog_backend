@@ -18,7 +18,7 @@ import {
 import {
   AuthenticatedUser,
   isStaffUser,
-} from 'src/common/guards/jwt_auth.guard';
+} from 'src/common/guards/auth-payload.types';
 
 const POST_INCLUDE = {
   user: {

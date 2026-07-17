@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
-import { JwtAuthGuard } from '../../../common/guards/jwt_auth.guard';
+import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { StaffRole } from '../../../lib/coreconstants';
@@ -30,7 +30,7 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('categories')
 @ApiBearerAuth()
 @FrontendController('categories')
-@UseGuards(JwtAuthGuard)
+@UseGuards(F_JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}

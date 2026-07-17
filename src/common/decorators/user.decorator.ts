@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { RequestWithStaff } from '../guards/jwt_auth.guard';
+import { RequestWithStaff } from '../guards/auth-payload.types';
 
 export const UserEntity = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
