@@ -55,7 +55,6 @@ model Post {
 model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
-  slug      String   @unique
   status    Int      @default(1)
   posts     Post[]
   createdAt DateTime @default(now())

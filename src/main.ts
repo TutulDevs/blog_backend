@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all_exceptions.filter';
@@ -18,6 +18,11 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Set the global prefix for almost all endpoints
+  app.setGlobalPrefix('api', {
+    exclude: [{ path: 'logs', method: RequestMethod.GET }],
+  });
 
   // Swagger configuration
   const config = new DocumentBuilder()

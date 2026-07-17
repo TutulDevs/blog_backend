@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { slugify } from '../../lib/functions';
 import {
   CreateCategoryDto,
   GetAllCategoriesQueryDto,
@@ -24,30 +23,6 @@ export class CategoryService {
     }
 
     return category;
-  }
-
-  async createCategory(dto: CreateCategoryDto) {
-    const slug = slugify(dto.slug ?? dto.name);
-
-    try {
-      const category = await this.prisma.category.create({
-        data: {
-          name: dto.name,
-          slug,
-          status: dto.status,
-        },
-      });
-
-      return { category };
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException('Name or slug already in use');
-      }
-      throw error;
-    }
   }
 
   async getAllCategories(query: GetAllCategoriesQueryDto) {
@@ -73,6 +48,7 @@ export class CategoryService {
         skip,
         take,
         orderBy: !sortBy ? { createdAt: 'desc' } : { [sortBy]: sortOrder },
+        // include: { _count: { select: { posts: true } } },
       }),
     ]);
 
@@ -87,16 +63,37 @@ export class CategoryService {
     };
   }
 
-  async getCategoryBySlug(slug: string) {
+  async getCategoryById(id: number) {
+    return await this.findCategoryByIdOrThrow(id);
+  }
+
+  async getPostsByCategoryId(id: number) {
+    await this.findCategoryByIdOrThrow(id);
+
     const category = await this.prisma.category.findUnique({
-      where: { slug },
+      where: { id },
+      include: { posts: true },
     });
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
-
     return { category };
+  }
+
+  async createCategory(dto: CreateCategoryDto) {
+    try {
+      const category = await this.prisma.category.create({
+        data: { ...dto },
+      });
+
+      return { message: 'Category created successfully', category };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('Name already in use');
+      }
+      throw error;
+    }
   }
 
   async updateCategory(id: number, dto: UpdateCategoryDto) {
@@ -105,20 +102,16 @@ export class CategoryService {
     try {
       const category = await this.prisma.category.update({
         where: { id },
-        data: {
-          name: dto.name,
-          slug: dto.slug ? slugify(dto.slug) : undefined,
-          status: dto.status,
-        },
+        data: { ...dto },
       });
 
-      return { category };
+      return { message: 'Category updated successfully', category };
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('Name or slug already in use');
+        throw new ConflictException('Name already in use');
       }
       throw error;
     }

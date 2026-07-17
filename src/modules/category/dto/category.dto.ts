@@ -8,21 +8,13 @@ import {
 } from 'class-validator';
 import { CategoryStatus } from '../../../lib/coreconstants';
 import { PaginationPageLimitDto } from 'src/common/dto/pagination.dto';
+import { Transform } from 'class-transformer';
 
 export class CreateCategoryDto {
   @ApiProperty({ example: 'Technology' })
   @IsString()
   @IsNotEmpty()
   name: string;
-
-  @ApiPropertyOptional({
-    example: 'technology',
-    description: 'URL slug. Auto-generated from the name if omitted.',
-  })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  slug?: string;
 
   @ApiPropertyOptional({ enum: CategoryStatus, example: CategoryStatus.ACTIVE })
   @IsOptional()
@@ -37,12 +29,6 @@ export class UpdateCategoryDto {
   @IsNotEmpty()
   name?: string;
 
-  @ApiPropertyOptional({ example: 'technology' })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  slug?: string;
-
   @ApiPropertyOptional({ enum: CategoryStatus, example: CategoryStatus.ACTIVE })
   @IsOptional()
   @IsEnum(CategoryStatus, { message: 'Invalid status' })
@@ -53,6 +39,13 @@ export class GetAllCategoriesQueryDto extends PaginationPageLimitDto {
   @ApiPropertyOptional({ example: 'tech' })
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => {
+    return typeof value !== 'string'
+      ? value
+      : value.trim() === ''
+        ? undefined
+        : value.trim().toLowerCase();
+  })
   search?: string;
 
   @ApiPropertyOptional({ enum: CategoryStatus, example: CategoryStatus.ACTIVE })

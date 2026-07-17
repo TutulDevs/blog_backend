@@ -40,22 +40,6 @@ import {
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
-  @Post()
-  @Roles(StaffRole.ADMIN)
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new category (admin only)' })
-  @ApiResponse({ status: 201, description: 'Category created successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid body' })
-  @ApiResponse({ status: 401, description: 'Not logged in' })
-  @ApiResponse({
-    status: 403,
-    description: 'Logged in but not permitted (non-admin)',
-  })
-  @ApiResponse({ status: 409, description: 'Name or slug already in use' })
-  createCategory(@Body() dto: CreateCategoryDto) {
-    return this.categoryService.createCategory(dto);
-  }
-
   @Get()
   @OptionalAuth()
   @HttpCode(HttpStatus.OK)
@@ -68,17 +52,46 @@ export class CategoryController {
     return this.categoryService.getAllCategories(query);
   }
 
-  @Get(':slug')
+  @Get(':id')
   @OptionalAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Get category by slug' })
+  @ApiOperation({ summary: 'Get category by id' })
   @ApiResponse({
     status: 200,
     description: 'Request successful, returns the category',
   })
-  @ApiResponse({ status: 404, description: 'Category not found' })
-  getCategoryBySlug(@Param('slug') slug: string) {
-    return this.categoryService.getCategoryBySlug(slug);
+  getCategoryById(@Param('id', ParseIntPipe) id: number) {
+    return this.categoryService.getCategoryById(id);
+  }
+
+  @Get(':id/posts')
+  @OptionalAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get category & posts by id' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the category & posts',
+  })
+  getPostsByCategoryId(@Param('id', ParseIntPipe) id: number) {
+    return this.categoryService.getPostsByCategoryId(id);
+  }
+
+  // GET /api/categories/trending (or /api/categories/popular)
+
+  @Post()
+  @Roles(StaffRole.ADMIN)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new category (admin only)' })
+  @ApiResponse({ status: 201, description: 'Category created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid body' })
+  @ApiResponse({ status: 401, description: 'Not logged in' })
+  @ApiResponse({
+    status: 403,
+    description: 'Logged in but not permitted (non-admin)',
+  })
+  @ApiResponse({ status: 409, description: 'Name already in use' })
+  createCategory(@Body() dto: CreateCategoryDto) {
+    return this.categoryService.createCategory(dto);
   }
 
   @Patch(':id')
@@ -96,7 +109,7 @@ export class CategoryController {
     description: 'Logged in but not permitted (non-admin)',
   })
   @ApiResponse({ status: 404, description: 'Category not found' })
-  @ApiResponse({ status: 409, description: 'Name or slug already in use' })
+  @ApiResponse({ status: 409, description: 'Name already in use' })
   updateCategory(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCategoryDto,
