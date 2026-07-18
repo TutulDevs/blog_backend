@@ -1,239 +1,136 @@
 import {
   Body,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
-  ParseIntPipe,
   Patch,
   Query,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { UserService } from './user.service';
+import { F_UserService } from './user.service';
 import { AuthenticatedUser } from '../../../common/guards/auth-payload.types';
 import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
-import { Roles } from '../../../common/decorators/roles.decorator';
-import { StaffRole } from '../../../lib/coreconstants';
-import {
-  GetAllUsersQueryDto,
-  UpdateUserDto,
-  UpdateUserStatusDto,
-  UpdateUserUsernameDto,
-} from './dto/user.dto';
+import { UserStatusGuard } from '../../../common/guards/user_status.guard';
+import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
+import { UserEntity } from '../../../common/decorators/user.decorator';
 import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
-import { OptionalAuth } from 'src/common/decorators/optional_auth.decorator';
-import { UserEntity } from 'src/common/decorators/user.decorator';
+import {
+  GetTopAuthorsQueryDto,
+  GetTrendingAuthorsQueryDto,
+  UpdateMyPasswordDto,
+  UpdateMyProfileDto,
+} from './dto/user.dto';
 import { FrontendController } from 'src/common/decorators/route.decorator';
 import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 
 @FrontendApiTags('user')
-@ApiBearerAuth()
-@FrontendController('user')
+@FrontendController('users')
 @UseGuards(F_JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
-export class UserController {
-  constructor(private readonly userService: UserService) {}
+export class F_UserController {
+  constructor(private readonly userService: F_UserService) {}
 
-  @Get()
+  @Get('me')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Get all users list',
-  })
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get my profile' })
   @ApiResponse({
     status: 200,
-    description: 'Request successful, returns all the users',
+    description: 'Request successful, returns my profile',
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  getAllUsers(@Query() query: GetAllUsersQueryDto) {
-    return this.userService.getAllUsers(query);
+  @ApiResponse({ status: 401, description: 'Not logged in' })
+  getMyProfile(@UserEntity() authUser: AuthenticatedUser) {
+    return this.userService.getMyProfile(authUser.id);
   }
 
-  @Get(':id_or_username')
+  @Patch('me')
+  @UseGuards(UserStatusGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update my profile (name/username/email)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the updated profile',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid body' })
+  @ApiResponse({ status: 401, description: 'Not logged in' })
+  @ApiResponse({ status: 409, description: 'Username or email already in use' })
+  updateMyProfile(
+    @Body() dto: UpdateMyProfileDto,
+    @UserEntity() authUser: AuthenticatedUser,
+  ) {
+    return this.userService.updateMyProfile(authUser.id, dto);
+  }
+
+  @Patch('me/password')
+  @UseGuards(UserStatusGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update my password' })
+  @ApiResponse({ status: 200, description: 'Password updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid body' })
+  @ApiResponse({
+    status: 401,
+    description: 'Not logged in or wrong current password',
+  })
+  updateMyPassword(
+    @Body() dto: UpdateMyPasswordDto,
+    @UserEntity() authUser: AuthenticatedUser,
+  ) {
+    return this.userService.updateMyPassword(authUser.id, dto);
+  }
+
+  @Delete('me')
+  @UseGuards(UserStatusGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Deactivate my account' })
+  @ApiResponse({ status: 200, description: 'Account deactivated successfully' })
+  @ApiResponse({ status: 401, description: 'Not logged in' })
+  deactivateMyAccount(@UserEntity() authUser: AuthenticatedUser) {
+    return this.userService.deactivateMyAccount(authUser.id);
+  }
+
+  @Get('top')
+  @OptionalAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get all-time top authors by published post count' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the top authors',
+  })
+  getTopAuthors(@Query() query: GetTopAuthorsQueryDto) {
+    return this.userService.getTopAuthors(query);
+  }
+
+  @Get('trending')
   @OptionalAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Get user by id/username',
+    summary: 'Get trending authors by recent comments received',
   })
   @ApiResponse({
     status: 200,
-    description: 'Request successful, returns the user',
+    description: 'Request successful, returns the trending authors',
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'User not found',
-  })
-  getUserByIdOrUsername(
-    @Param('id_or_username') id_or_username: string,
-    @UserEntity() user: AuthenticatedUser,
-  ) {
-    return this.userService.getUserByIdOrUsername(id_or_username, user);
+  getTrendingAuthors(@Query() query: GetTrendingAuthorsQueryDto) {
+    return this.userService.getTrendingAuthors(query);
   }
 
-  @Get('username/:username')
-  @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
+  @Get(':username')
+  @OptionalAuth()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Get user by username',
-  })
+  @ApiOperation({ summary: 'Get public author profile with published posts' })
   @ApiResponse({
     status: 200,
-    description: 'Request successful, returns the user',
+    description: 'Request successful, returns the public profile',
   })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'User not found',
-  })
-  getUserByUsername(@Param('username') username: string) {
-    return this.userService.getUserByUsername(username);
+  @ApiResponse({ status: 404, description: 'User not found' })
+  getPublicProfile(@Param('username') username: string) {
+    return this.userService.getPublicProfileByUsername(username);
   }
-
-  // user details will have posts list
-  // if own posts, show all status posts
-
-  @Get(':id')
-  @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Get user by ID',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Request successful, returns the user',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid id format',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'User not found',
-  })
-  getUserById(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getUserById(id);
-  }
-
-  @Patch(':id')
-  @Roles(StaffRole.ADMIN, StaffRole.EDITOR)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Update user (name/email)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Request successful, returns the updated user',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid id format or invalid body',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'User not found',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Email already in use',
-  })
-  updateUser(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    return this.userService.updateUser(id, updateUserDto);
-  }
-
-  @Patch(':id/status')
-  @Roles(StaffRole.ADMIN)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Update user status (admin only)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Request successful, returns the updated user',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid id format or invalid status value',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Logged in but not permitted (non-admin)',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'User not found',
-  })
-  updateUserStatus(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserStatusDto: UpdateUserStatusDto,
-  ) {
-    return this.userService.updateUserStatus(id, updateUserStatusDto.status);
-  }
-
-  @Patch(':id/username')
-  @Roles(StaffRole.ADMIN)
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Update user username (admin only)',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Request successful, returns the updated user',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid id format or invalid username',
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Not logged in or unauthorized',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Logged in but not permitted (non-admin)',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'User not found',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'Username already in use',
-  })
-  updateUserUsername(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserUsernameDto: UpdateUserUsernameDto,
-  ) {
-    return this.userService.updateUserUsername(
-      id,
-      updateUserUsernameDto.username,
-    );
-  }
-
-  // update password
 }

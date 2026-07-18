@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PostService } from './post.service';
+import { CommentService } from '../comment/comment.service';
 import { AuthenticatedUser } from '../../../common/guards/auth-payload.types';
 import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
 import { UserStatusGuard } from '../../../common/guards/user_status.guard';
@@ -21,6 +22,7 @@ import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator
 import { UserEntity } from '../../../common/decorators/user.decorator';
 import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
 import {
+  CreatePostCommentDto,
   CreatePostDto,
   GetAllPostsQueryDto,
   UpdatePostCoverImageDto,
@@ -36,7 +38,10 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @UseGuards(F_JwtAuthGuard)
 @UseInterceptors(TransformPostInterceptor)
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly commentService: CommentService,
+  ) {}
 
   @Get()
   @OptionalAuth()
@@ -51,6 +56,21 @@ export class PostController {
     @UserEntity() reqUser: AuthenticatedUser,
   ) {
     return this.postService.getAllPosts(query, reqUser);
+  }
+
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get my posts (all statuses) for my dashboard' })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns my posts',
+  })
+  @ApiResponse({ status: 401, description: 'Not logged in' })
+  getMyPosts(
+    @Query() query: GetAllPostsQueryDto,
+    @UserEntity() authUser: AuthenticatedUser,
+  ) {
+    return this.postService.getMyPosts(query, authUser.id);
   }
 
   @Get(':slug')
@@ -85,6 +105,25 @@ export class PostController {
     @UserEntity() authUser: AuthenticatedUser,
   ) {
     return this.postService.createPost(authUser.id, dto);
+  }
+
+  @Post(':id/comments')
+  @UseGuards(UserStatusGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Publish a comment on a specific post' })
+  @ApiResponse({ status: 201, description: 'Comment created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid id or body' })
+  @ApiResponse({ status: 401, description: 'Not logged in' })
+  @ApiResponse({ status: 404, description: 'Post not found' })
+  createPostComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: CreatePostCommentDto,
+    @UserEntity() authUser: AuthenticatedUser,
+  ) {
+    return this.commentService.createComment(
+      { postId: id, content: dto.content },
+      authUser,
+    );
   }
 
   @Patch(':id')

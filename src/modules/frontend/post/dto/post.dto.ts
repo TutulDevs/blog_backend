@@ -128,3 +128,10 @@ export class UpdatePostCoverImageDto {
   @IsNotEmpty()
   coverImage: string;
 }
+
+export class CreatePostCommentDto {
+  @ApiProperty({ example: 'Great article, thanks for sharing!' })
+  @IsString()
+  @IsNotEmpty()
+  content: string;
+}

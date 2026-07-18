@@ -1,0 +1,26 @@
+- ✅ GET - /users/me - Fetches the private profile details of the currently logged-in user to populate settings or navigation components.
+  - (GET - /api/f/users/me - Implemented in `F_UserController.getMyProfile` / `F_UserService.getMyProfile`, new `F_UserModule`)
+- ✅ PATCH - /users/me - Updates the logged-in user's profile details such as their display name, username, or email address.
+  - (PATCH - /api/f/users/me - Implemented in `F_UserController.updateMyProfile` / `F_UserService.updateMyProfile` via `UpdateMyProfileDto`, new `F_UserModule`)
+- ✅ PATCH - /users/me/password - Validates the user's current password and updates it to a new secure string.
+  - (PATCH - /api/f/users/me/password - Implemented in `F_UserController.updateMyPassword` / `F_UserService.updateMyPassword`, verifies `currentPassword` with bcrypt before hashing `newPassword`, new `F_UserModule`)
+- ✅ DELETE - /users/me - Deactivates the logged-in user's account by switching their active status flag to false.
+  - (DELETE - /api/f/users/me - Implemented in `F_UserController.deactivateMyAccount` / `F_UserService.deactivateMyAccount`, sets `status` to `UserStatus.INACTIVE`, new `F_UserModule`)
+- ✅ POST - /posts - Creates a new blog post and automatically associates it with the logged-in user's ID via the posts relation.
+  - (POST - /api/f/posts - Already existed in `PostController.createPost` (existing `F_PostModule`), left untouched)
+- ✅ GET - /posts/me - Retrieves a list of all blog posts authored exclusively by the currently logged-in user for their personal dashboard.
+  - (GET - /api/f/posts/me - Newly added `PostController.getMyPosts` / `PostService.getMyPosts` to the existing `F_PostModule`, since this route was missing)
+- ✅ PATCH - /posts/:id - Updates the content or title of a specific blog post after verifying the logged-in user is the author.
+  - (PATCH - /api/f/posts/:id - Already existed in `PostController.updatePost`, ownership-checked via `assertOwnerOrStaff`, left untouched)
+- ✅ DELETE - /posts/:id - Deletes a specific blog post after verifying the logged-in user is the author.
+  - (DELETE - /api/f/posts/:id - Already existed in `PostController.deletePost`, ownership-checked via `assertOwnerOrStaff`, left untouched)
+- ✅ POST - /posts/:id/comments - Publishes a comment on a specific blog post, automatically linking the comment to the logged-in user's ID.
+  - (POST - /api/f/posts/:id/comments - Newly added `PostController.createPostComment` to the existing `F_PostModule`, delegates to the existing `CommentService.createComment` with `postId` taken from the route param instead of the body)
+- ✅ DELETE - /comments/:id - Deletes a specific comment after verifying the logged-in user is the one who wrote it.
+  - (DELETE - /api/f/comments/:id - Already existed in `CommentController.deleteComment`, ownership-checked via `assertOwnerOrStaff`, left untouched)
+- ✅ GET - /users/:username - Publicly fetches an author's public profile details alongside an array of their published posts.
+  - (GET - /api/f/users/:username - Implemented in `F_UserController.getPublicProfile` / `F_UserService.getPublicProfileByUsername`, public via `@OptionalAuth()`, returns `username`/`name`/`createdAt` plus only `PUBLISHED` posts, new `F_UserModule`)
+- ✅ GET - /users/top - Publicly fetches a list of the all-time top authors ranked by the highest total number of published posts.
+  - (GET - /api/f/users/top - Implemented in `F_UserController.getTopAuthors` / `F_UserService.getTopAuthors`, public via `@OptionalAuth()`, groups `Post` by `userId` where `status = PUBLISHED` ordered by count desc, new `F_UserModule`)
+- ✅ GET - /users/trending - Publicly fetches a list of trending authors ranked by the highest number of comments received on their posts within a recent timeframe.
+  - (GET - /api/f/users/trending - Implemented in `F_UserController.getTrendingAuthors` / `F_UserService.getTrendingAuthors`, public via `@OptionalAuth()`, counts comments on each author's published posts within the last `days` (default 30) ranked desc, new `F_UserModule`)

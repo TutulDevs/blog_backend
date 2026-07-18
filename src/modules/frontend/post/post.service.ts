@@ -121,6 +121,53 @@ export class PostService {
     };
   }
 
+  async getMyPosts(query: GetAllPostsQueryDto, userId: number) {
+    const { search, status, categoryId, sortBy, sortOrder, page, limit } =
+      query;
+
+    const where: Prisma.PostWhereInput = { userId };
+
+    if (status !== undefined) {
+      where.status = status;
+    }
+
+    if (categoryId !== undefined) {
+      where.categoryId = categoryId;
+    }
+
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { slug: { contains: search, mode: 'insensitive' } },
+        { content: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const take = limit;
+
+    const [totalFilteredPosts, posts] = await Promise.all([
+      this.prisma.post.count({ where }),
+      this.prisma.post.findMany({
+        where,
+        skip,
+        take,
+        orderBy: !sortBy ? { createdAt: 'desc' } : { [sortBy]: sortOrder },
+        include: POST_INCLUDE,
+      }),
+    ]);
+
+    return {
+      meta: {
+        totalCount: totalFilteredPosts,
+        page,
+        limit,
+        totalPages: Math.ceil(totalFilteredPosts / limit),
+      },
+      list: posts,
+    };
+  }
+
   async getPostBySlug(slug: string, reqUser?: AuthenticatedUser) {
     const post = await this.prisma.post.findUnique({
       where: { slug },

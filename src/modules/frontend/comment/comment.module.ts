@@ -7,5 +7,6 @@ import { AuthModule } from '../../auth/auth.module';
   imports: [AuthModule],
   controllers: [CommentController],
   providers: [CommentService],
+  exports: [CommentService],
 })
 export class F_CommentModule {}
