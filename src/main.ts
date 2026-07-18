@@ -20,6 +20,15 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new AllExceptionsFilter());
 
+  // CORS
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map((o) =>
+    o.trim(),
+  );
+  app.enableCors({
+    origin: allowedOrigins ?? false,
+    credentials: true,
+  });
+
   // Set the global prefix for almost all endpoints
   app.setGlobalPrefix('api', {
     exclude: [{ path: 'logs', method: RequestMethod.GET }],

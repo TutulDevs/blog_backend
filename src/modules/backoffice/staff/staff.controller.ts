@@ -61,6 +61,23 @@ export class StaffController {
     );
   }
 
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get the currently logged in staff (based on token)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Request successful, returns the current staff',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Not logged in or unauthorized',
+  })
+  getMe(@UserEntity() user: AuthenticatedUser) {
+    return this.staffService.getStaffById(user.id);
+  }
+
   @Get(':id')
   @Roles(StaffRole.ADMIN)
   @HttpCode(HttpStatus.OK)
