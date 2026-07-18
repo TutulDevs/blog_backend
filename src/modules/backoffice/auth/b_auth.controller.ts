@@ -1,5 +1,5 @@
-import { Body, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { B_AuthService } from './b_auth.service';
 import {
@@ -10,6 +10,10 @@ import {
 } from './dto/auth_staff.dto';
 import { BackofficeController } from 'src/common/decorators/route.decorator';
 import { BackofficeApiTags } from 'src/common/decorators/api_tag.decorator';
+import { B_JwtAuthGuard } from 'src/common/guards/b_jwt_auth.guard';
+import { B_RolesGuard } from 'src/common/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { StaffRole } from 'src/lib/coreconstants';
 
 @BackofficeApiTags('auth staff')
 @BackofficeController('auth')
@@ -34,13 +38,24 @@ export class B_AuthController {
   }
 
   @Post('staff/register')
+  @ApiBearerAuth()
+  @UseGuards(B_JwtAuthGuard, B_RolesGuard)
+  @Roles(StaffRole.ADMIN)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Register staff',
+    summary: 'Register a new staff member (admin only)',
   })
   @ApiResponse({
     status: 201,
     description: 'Register successful, returns staff profile',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Not logged in or unauthorized',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Logged in but not permitted (non-admin)',
   })
   @ApiResponse({
     status: 409,

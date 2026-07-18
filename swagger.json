@@ -1,0 +1,2868 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/logs": {
+      "get": {
+        "operationId": "AppController_getLogs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/api/b/auth/staff/login": {
+      "post": {
+        "operationId": "B_AuthController_staffLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns access token and staff profile"
+          },
+          "401": {
+            "description": "Invalid credentials or inactive account"
+          }
+        },
+        "summary": "Log in as Staff (Admin/Editor) and receive a JWT access token",
+        "tags": [
+          "[B] auth staff"
+        ]
+      }
+    },
+    "/api/b/auth/staff/register": {
+      "post": {
+        "operationId": "B_AuthController_staffRegister",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffRegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Register successful, returns staff profile"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "409": {
+            "description": "A staff with the credential exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a new staff member (admin only)",
+        "tags": [
+          "[B] auth staff"
+        ]
+      }
+    },
+    "/api/b/auth/staff/forgot_password": {
+      "post": {
+        "operationId": "B_AuthController_staffForgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request accepted; a reset code is sent to the email if it is registered"
+          }
+        },
+        "summary": "Get reset code if password is forgotten",
+        "tags": [
+          "[B] auth staff"
+        ]
+      }
+    },
+    "/api/b/auth/staff/reset_password": {
+      "post": {
+        "operationId": "B_AuthController_staffResetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset password successful"
+          },
+          "400": {
+            "description": "Invalid or expired reset code"
+          }
+        },
+        "summary": "Reset password with reset code",
+        "tags": [
+          "[B] auth staff"
+        ]
+      }
+    },
+    "/api/b/staff": {
+      "get": {
+        "operationId": "StaffController_getAllStaffs",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "john",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "enum": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "enum": [
+                1,
+                2
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the staffs"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all staffs list",
+        "tags": [
+          "[B] staff"
+        ]
+      }
+    },
+    "/api/b/staff/{id}": {
+      "get": {
+        "operationId": "StaffController_getStaffById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the staff"
+          },
+          "400": {
+            "description": "Invalid id format"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Staff not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get staff by ID",
+        "tags": [
+          "[B] staff"
+        ]
+      }
+    },
+    "/api/b/staff/{id}/status": {
+      "patch": {
+        "operationId": "StaffController_updateStaffStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStaffStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated staff"
+          },
+          "400": {
+            "description": "Invalid id format or invalid status value"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Staff not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update staff status (admin only)",
+        "tags": [
+          "[B] staff"
+        ]
+      }
+    },
+    "/api/b/staff/{id}/role": {
+      "patch": {
+        "operationId": "StaffController_updateStaffRole",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStaffRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated staff"
+          },
+          "400": {
+            "description": "Invalid id format or invalid role value"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Staff not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update staff role (admin only)",
+        "tags": [
+          "[B] staff"
+        ]
+      }
+    },
+    "/api/b/users": {
+      "get": {
+        "operationId": "B_UserController_getAllUsers",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "john",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "isVerified",
+            "required": false,
+            "in": "query",
+            "description": "Verification status: 0 for false, 1 for true",
+            "schema": {
+              "example": 1,
+              "enum": [
+                0,
+                1
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the users"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all users list",
+        "tags": [
+          "[B] users"
+        ]
+      }
+    },
+    "/api/b/users/{username}": {
+      "get": {
+        "operationId": "B_UserController_getUserByUsername",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the user"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user by username",
+        "tags": [
+          "[B] users"
+        ]
+      },
+      "delete": {
+        "operationId": "B_UserController_deleteUser",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete user by username (admin only)",
+        "tags": [
+          "[B] users"
+        ]
+      }
+    },
+    "/api/b/users/{username}/status": {
+      "patch": {
+        "operationId": "B_UserController_updateUserStatus",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated user"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update user status (admin only)",
+        "tags": [
+          "[B] users"
+        ]
+      }
+    },
+    "/api/b/users/{username}/verified": {
+      "patch": {
+        "operationId": "B_UserController_updateUserVerified",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserVerifiedDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated user"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update user verification status (admin only)",
+        "tags": [
+          "[B] users"
+        ]
+      }
+    },
+    "/api/b/categories": {
+      "get": {
+        "operationId": "B_CategoryController_getAllCategories",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "tech",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "enum": [
+                0,
+                1
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the categories"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all categories",
+        "tags": [
+          "[B] categories"
+        ]
+      },
+      "post": {
+        "operationId": "B_CategoryController_createCategory",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Request successful, returns the created category"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "409": {
+            "description": "Category name already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a category (admin only)",
+        "tags": [
+          "[B] categories"
+        ]
+      }
+    },
+    "/api/b/categories/{id}": {
+      "get": {
+        "operationId": "B_CategoryController_getCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the category"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get category by id",
+        "tags": [
+          "[B] categories"
+        ]
+      },
+      "patch": {
+        "operationId": "B_CategoryController_updateCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated category"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Category not found"
+          },
+          "409": {
+            "description": "Category name already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a category (admin only)",
+        "tags": [
+          "[B] categories"
+        ]
+      },
+      "delete": {
+        "operationId": "B_CategoryController_deleteCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category deleted successfully"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a category (admin only)",
+        "tags": [
+          "[B] categories"
+        ]
+      }
+    },
+    "/api/b/posts": {
+      "get": {
+        "operationId": "B_PostController_getAllPosts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "nestjs",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 2,
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the posts"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all posts",
+        "tags": [
+          "[B] posts"
+        ]
+      }
+    },
+    "/api/b/posts/{slug}": {
+      "get": {
+        "operationId": "B_PostController_getPostBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the post"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get post by slug",
+        "tags": [
+          "[B] posts"
+        ]
+      }
+    },
+    "/api/b/posts/{id}/status": {
+      "patch": {
+        "operationId": "B_PostController_updatePostStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated post"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-staff)"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update post status (admin & editor only)",
+        "tags": [
+          "[B] posts"
+        ]
+      }
+    },
+    "/api/b/posts/{id}": {
+      "delete": {
+        "operationId": "B_PostController_deletePost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted successfully"
+          },
+          "401": {
+            "description": "Not logged in or unauthorized"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-admin)"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a post (admin only)",
+        "tags": [
+          "[B] posts"
+        ]
+      }
+    },
+    "/api/f/auth/user/register": {
+      "post": {
+        "operationId": "F_AuthController_userRegister",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Register successful, returns user profile"
+          },
+          "409": {
+            "description": "A user with this email or username already exists"
+          }
+        },
+        "summary": "Register a new User (blog author)",
+        "tags": [
+          "[F] auth user"
+        ]
+      }
+    },
+    "/api/f/auth/user/verify_email": {
+      "post": {
+        "operationId": "F_AuthController_userVerifyEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserVerifyEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email verified successfully"
+          },
+          "400": {
+            "description": "Invalid or expired verification code"
+          }
+        },
+        "summary": "Verify a User email address with the verification code",
+        "tags": [
+          "[F] auth user"
+        ]
+      }
+    },
+    "/api/f/auth/user/login": {
+      "post": {
+        "operationId": "F_AuthController_userLogin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, returns access token and user profile"
+          },
+          "401": {
+            "description": "Invalid credentials, unverified email, or inactive account"
+          }
+        },
+        "summary": "Log in as User (blog author) with email or username, and receive a JWT access token",
+        "tags": [
+          "[F] auth user"
+        ]
+      }
+    },
+    "/api/f/users/me": {
+      "get": {
+        "operationId": "F_UserController_getMyProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns my profile"
+          },
+          "401": {
+            "description": "Not logged in"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my profile",
+        "tags": [
+          "[F] user"
+        ]
+      },
+      "patch": {
+        "operationId": "F_UserController_updateMyProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMyProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated profile"
+          },
+          "400": {
+            "description": "Invalid body"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "409": {
+            "description": "Username or email already in use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update my profile (name/username/email)",
+        "tags": [
+          "[F] user"
+        ]
+      },
+      "delete": {
+        "operationId": "F_UserController_deactivateMyAccount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Account deactivated successfully"
+          },
+          "401": {
+            "description": "Not logged in"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deactivate my account",
+        "tags": [
+          "[F] user"
+        ]
+      }
+    },
+    "/api/f/users/me/password": {
+      "patch": {
+        "operationId": "F_UserController_updateMyPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMyPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated successfully"
+          },
+          "400": {
+            "description": "Invalid body"
+          },
+          "401": {
+            "description": "Not logged in or wrong current password"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update my password",
+        "tags": [
+          "[F] user"
+        ]
+      }
+    },
+    "/api/f/users/top": {
+      "get": {
+        "operationId": "F_UserController_getTopAuthors",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the top authors"
+          }
+        },
+        "summary": "Get all-time top authors by published post count",
+        "tags": [
+          "[F] user"
+        ]
+      }
+    },
+    "/api/f/users/trending": {
+      "get": {
+        "operationId": "F_UserController_getTrendingAuthors",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "days",
+            "required": false,
+            "in": "query",
+            "description": "Only count comments received within the last N days",
+            "schema": {
+              "example": 30,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the trending authors"
+          }
+        },
+        "summary": "Get trending authors by recent comments received",
+        "tags": [
+          "[F] user"
+        ]
+      }
+    },
+    "/api/f/users/{username}": {
+      "get": {
+        "operationId": "F_UserController_getPublicProfile",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the public profile"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "summary": "Get public author profile with published posts",
+        "tags": [
+          "[F] user"
+        ]
+      }
+    },
+    "/api/f/categories": {
+      "get": {
+        "operationId": "CategoryController_getAllCategories",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "tech",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "enum": [
+                0,
+                1
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the categories"
+          }
+        },
+        "summary": "Get all categories",
+        "tags": [
+          "[F] categories"
+        ]
+      }
+    },
+    "/api/f/categories/{id}": {
+      "get": {
+        "operationId": "CategoryController_getCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the category"
+          }
+        },
+        "summary": "Get category by id",
+        "tags": [
+          "[F] categories"
+        ]
+      }
+    },
+    "/api/f/categories/{id}/posts": {
+      "get": {
+        "operationId": "CategoryController_getPostsByCategoryId",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the category & posts"
+          }
+        },
+        "summary": "Get category & posts by id",
+        "tags": [
+          "[F] categories"
+        ]
+      }
+    },
+    "/api/f/posts": {
+      "get": {
+        "operationId": "PostController_getAllPosts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "nestjs",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 2,
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the posts"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all posts (published)",
+        "tags": [
+          "[F] posts"
+        ]
+      },
+      "post": {
+        "operationId": "PostController_createPost",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Post created successfully"
+          },
+          "400": {
+            "description": "Invalid body or category reference"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "409": {
+            "description": "Slug already in use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new post",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/posts/me": {
+      "get": {
+        "operationId": "PostController_getMyPosts",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "nestjs",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 2,
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "categoryId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns my posts"
+          },
+          "401": {
+            "description": "Not logged in"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my posts (all statuses) for my dashboard",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/posts/{slug}": {
+      "get": {
+        "operationId": "PostController_getPostBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the post"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get post by slug",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/posts/{id}/comments": {
+      "post": {
+        "operationId": "PostController_createPostComment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Comment created successfully"
+          },
+          "400": {
+            "description": "Invalid id or body"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Publish a comment on a specific post",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/posts/{id}": {
+      "patch": {
+        "operationId": "PostController_updatePost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated post"
+          },
+          "400": {
+            "description": "Invalid id, body, or category reference"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Not the post owner"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update post (title/content/category/status)",
+        "tags": [
+          "[F] posts"
+        ]
+      },
+      "delete": {
+        "operationId": "PostController_deletePost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted successfully"
+          },
+          "400": {
+            "description": "Invalid id format"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Not the post owner"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete post",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/posts/{id}/slug": {
+      "patch": {
+        "operationId": "PostController_updatePostSlug",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostSlugDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated post"
+          },
+          "400": {
+            "description": "Invalid id or slug"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Not the post owner"
+          },
+          "404": {
+            "description": "Post not found"
+          },
+          "409": {
+            "description": "Slug already in use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update post slug",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/posts/{id}/cover-image": {
+      "patch": {
+        "operationId": "PostController_updatePostCoverImage",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePostCoverImageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated post"
+          },
+          "400": {
+            "description": "Invalid id or coverImage"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Not the post owner"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update post cover image",
+        "tags": [
+          "[F] posts"
+        ]
+      }
+    },
+    "/api/f/comments": {
+      "post": {
+        "operationId": "CommentController_createComment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Comment created successfully"
+          },
+          "400": {
+            "description": "Invalid body, or missing guestName/guestEmail for guests"
+          },
+          "404": {
+            "description": "Post not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new comment (logged-in author or guest)",
+        "tags": [
+          "[F] comments"
+        ]
+      },
+      "get": {
+        "operationId": "CommentController_getAllComments",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "postId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "enum": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Field to sort by",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns all the comments"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all comments (optionally filtered by post)",
+        "tags": [
+          "[F] comments"
+        ]
+      }
+    },
+    "/api/f/comments/{id}": {
+      "get": {
+        "operationId": "CommentController_getCommentById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the comment"
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get comment by ID",
+        "tags": [
+          "[F] comments"
+        ]
+      },
+      "patch": {
+        "operationId": "CommentController_updateComment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated comment"
+          },
+          "400": {
+            "description": "Invalid id or body"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Not the comment owner"
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update comment content",
+        "tags": [
+          "[F] comments"
+        ]
+      },
+      "delete": {
+        "operationId": "CommentController_deleteComment",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment deleted successfully"
+          },
+          "400": {
+            "description": "Invalid id format"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Not the comment owner"
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete comment",
+        "tags": [
+          "[F] comments"
+        ]
+      }
+    },
+    "/api/f/comments/{id}/status": {
+      "patch": {
+        "operationId": "CommentController_updateCommentStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCommentStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Request successful, returns the updated comment"
+          },
+          "400": {
+            "description": "Invalid id or status value"
+          },
+          "401": {
+            "description": "Not logged in"
+          },
+          "403": {
+            "description": "Logged in but not permitted (non-staff)"
+          },
+          "404": {
+            "description": "Comment not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update comment status (editorial staff only)",
+        "tags": [
+          "[F] comments"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Blog Management API",
+    "description": "API for blog management system with user authentication and post management",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "StaffLoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@email.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "StaffRegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@email.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "role": {
+            "type": "number",
+            "example": 1
+          },
+          "status": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "name",
+          "role",
+          "status"
+        ]
+      },
+      "StaffForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@email.com"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "StaffResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@email.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          },
+          "resetCode": {
+            "type": "string",
+            "example": "123789"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "resetCode"
+        ]
+      },
+      "UpdateStaffStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "example": 1
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UpdateStaffRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "number",
+            "enum": [
+              1,
+              2
+            ],
+            "example": 2
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "UpdateUserStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "example": 1
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UpdateUserVerifiedDto": {
+        "type": "object",
+        "properties": {
+          "isVerified": {
+            "type": "number",
+            "description": "Verification status: 0 for false, 1 for true",
+            "enum": [
+              0,
+              1
+            ],
+            "example": 1
+          }
+        },
+        "required": [
+          "isVerified"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Technology"
+          },
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1
+            ],
+            "example": 1
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Technology"
+          },
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1
+            ],
+            "example": 1
+          }
+        }
+      },
+      "UpdatePostStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "example": 2
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "UserRegisterDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@email.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "Pass.1234"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          }
+        },
+        "required": [
+          "username",
+          "email",
+          "password"
+        ]
+      },
+      "UserVerifyEmailDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "john@email.com"
+          },
+          "verifyCode": {
+            "type": "string",
+            "example": "123456"
+          }
+        },
+        "required": [
+          "email",
+          "verifyCode"
+        ]
+      },
+      "UserLoginDto": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "example": "amara_k",
+            "description": "Email address or username"
+          },
+          "password": {
+            "type": "string",
+            "example": "Pass.1234"
+          }
+        },
+        "required": [
+          "identifier",
+          "password"
+        ]
+      },
+      "UpdateMyProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@email.com"
+          }
+        }
+      },
+      "UpdateMyPasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "Pass.1234"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "NewPass.5678"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "CreatePostDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "How to write great blog posts"
+          },
+          "content": {
+            "type": "string",
+            "example": "Full article content goes here..."
+          },
+          "slug": {
+            "type": "string",
+            "example": "how-to-write-great-blog-posts",
+            "description": "URL slug. Auto-generated from the title if omitted."
+          },
+          "coverImage": {
+            "type": "string",
+            "example": "/uploads/covers/post-1.jpg"
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ]
+      },
+      "CreatePostCommentDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "example": "Great article, thanks for sharing!"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UpdatePostDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "How to write great blog posts"
+          },
+          "content": {
+            "type": "string",
+            "example": "Full article content goes here..."
+          },
+          "categoryId": {
+            "type": "number",
+            "example": 1
+          },
+          "status": {
+            "type": "number",
+            "description": "Status (only archive)",
+            "example": 4
+          }
+        }
+      },
+      "UpdatePostSlugDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "how-to-write-great-blog-posts"
+          }
+        },
+        "required": [
+          "slug"
+        ]
+      },
+      "UpdatePostCoverImageDto": {
+        "type": "object",
+        "properties": {
+          "coverImage": {
+            "type": "string",
+            "example": "/uploads/covers/post-1.jpg"
+          }
+        },
+        "required": [
+          "coverImage"
+        ]
+      },
+      "CreateCommentDto": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "number",
+            "example": 1
+          },
+          "content": {
+            "type": "string",
+            "example": "Great article, thanks for sharing!"
+          },
+          "guestName": {
+            "type": "string",
+            "example": "Jane Doe",
+            "description": "Required for guest (not logged in) comments"
+          },
+          "guestEmail": {
+            "type": "string",
+            "example": "jane@email.com",
+            "description": "Required for guest (not logged in) comments"
+          }
+        },
+        "required": [
+          "postId",
+          "content"
+        ]
+      },
+      "UpdateCommentDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "example": "Edited: great article, thanks for sharing!"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "UpdateCommentStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "example": 1
+          }
+        },
+        "required": [
+          "status"
+        ]
+      }
+    }
+  }
+}

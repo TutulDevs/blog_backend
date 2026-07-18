@@ -3,6 +3,7 @@ import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all_exceptions.filter';
+// import * as fs from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -38,6 +39,7 @@ async function bootstrap() {
     customSiteTitle: 'Blog | Swagger',
     swaggerOptions: { docExpansion: 'none' },
   });
+  // fs.writeFileSync('./swagger.json', JSON.stringify(document, null, 2)); // to get json in swagger /api/docs-json
 
   await app.listen(process.env.PORT ?? 3000);
 }
