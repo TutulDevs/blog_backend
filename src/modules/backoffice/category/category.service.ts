@@ -70,9 +70,9 @@ export class B_CategoryService {
 
   async createCategory(dto: CreateCategoryDto) {
     try {
-      const category = await this.prisma.category.create({ data: dto });
+      await this.prisma.category.create({ data: dto });
 
-      return { category };
+      return { message: 'Category created successfully' };
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -89,12 +89,12 @@ export class B_CategoryService {
     await this.findCategoryByIdOrThrow(id);
 
     try {
-      const category = await this.prisma.category.update({
+      await this.prisma.category.update({
         where: { id },
         data: dto,
       });
 
-      return { category };
+      return { message: 'Category updated successfully' };
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

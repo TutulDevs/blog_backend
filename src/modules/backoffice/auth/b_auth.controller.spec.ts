@@ -80,7 +80,7 @@ describe('AuthController', () => {
         role: 1,
         status: 1,
       };
-      const result = { id: 1, email: dto.email };
+      const result = { message: 'Staff registered successfully' };
       authService.staffRegister.mockResolvedValue(result);
 
       await expect(controller.staffRegister(dto)).resolves.toBe(result);

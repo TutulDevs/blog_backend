@@ -10,7 +10,6 @@ import {
   Post,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PostService } from './post.service';
@@ -20,7 +19,6 @@ import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
 import { UserStatusGuard } from '../../../common/guards/user_status.guard';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { UserEntity } from '../../../common/decorators/user.decorator';
-import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
 import {
   CreatePostCommentDto,
   CreatePostDto,
@@ -36,7 +34,6 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @ApiBearerAuth()
 @FrontendController('posts')
 @UseGuards(F_JwtAuthGuard)
-@UseInterceptors(TransformPostInterceptor)
 export class PostController {
   constructor(
     private readonly postService: PostService,

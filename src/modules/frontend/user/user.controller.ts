@@ -8,7 +8,6 @@ import {
   Patch,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { F_UserService } from './user.service';
@@ -17,7 +16,6 @@ import { F_JwtAuthGuard } from '../../../common/guards/f_jwt_auth.guard';
 import { UserStatusGuard } from '../../../common/guards/user_status.guard';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { UserEntity } from '../../../common/decorators/user.decorator';
-import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
 import {
   GetTopAuthorsQueryDto,
   GetTrendingAuthorsQueryDto,
@@ -30,7 +28,6 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @FrontendApiTags('user')
 @FrontendController('users')
 @UseGuards(F_JwtAuthGuard)
-@UseInterceptors(TransformPostInterceptor)
 export class F_UserController {
   constructor(private readonly userService: F_UserService) {}
 

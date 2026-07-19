@@ -42,7 +42,7 @@ describe('F_AuthController', () => {
         password: 'password123',
         name: 'John Doe',
       };
-      const result = { id: 1, username: dto.username, email: dto.email };
+      const result = { message: 'User registered successfully' };
       authService.userRegister.mockResolvedValue(result);
 
       await expect(controller.userRegister(dto)).resolves.toBe(result);
@@ -98,6 +98,7 @@ describe('F_AuthController', () => {
         password: 'password123',
       };
       const result = {
+        message: 'Login successful',
         accessToken: 'token',
         user: {
           id: 1,

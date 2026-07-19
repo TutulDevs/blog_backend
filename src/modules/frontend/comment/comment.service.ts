@@ -70,7 +70,7 @@ export class CommentService {
     }
 
     try {
-      const comment = await this.prisma.comment.create({
+      await this.prisma.comment.create({
         data: {
           content: dto.content,
           postId: dto.postId,
@@ -82,7 +82,7 @@ export class CommentService {
         include: COMMENT_INCLUDE,
       });
 
-      return { comment };
+      return { message: 'Comment submitted successfully' };
     } catch (error) {
       // narrows the race window between the assertPostExists check above
       // and this create — the post (or the author's account) being deleted
@@ -161,25 +161,25 @@ export class CommentService {
     const comment = await this.findCommentByIdOrThrow(id);
     this.assertOwnerOrStaff(comment, authUser);
 
-    const updated = await this.prisma.comment.update({
+    await this.prisma.comment.update({
       where: { id },
       data: { content: dto.content },
       include: COMMENT_INCLUDE,
     });
 
-    return { comment: updated };
+    return { message: 'Comment updated successfully' };
   }
 
   async updateCommentStatus(id: number, status: CommentStatus) {
     await this.findCommentByIdOrThrow(id);
 
-    const comment = await this.prisma.comment.update({
+    await this.prisma.comment.update({
       where: { id },
       data: { status },
       include: COMMENT_INCLUDE,
     });
 
-    return { comment };
+    return { message: 'Comment status updated successfully' };
   }
 
   async deleteComment(id: number, authUser: AuthenticatedUser) {

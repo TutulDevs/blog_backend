@@ -8,7 +8,6 @@ import {
   Patch,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { StaffService } from './staff.service';
@@ -25,7 +24,6 @@ import {
   UpdateStaffRoleDto,
   UpdateStaffStatusDto,
 } from './dto/staff.dto';
-import { TransformPostInterceptor } from 'src/common/interceptors/transform_post.interceptor';
 import { UserEntity } from 'src/common/decorators/user.decorator';
 import { BackofficeController } from 'src/common/decorators/route.decorator';
 import { BackofficeApiTags } from 'src/common/decorators/api_tag.decorator';
@@ -34,7 +32,6 @@ import { BackofficeApiTags } from 'src/common/decorators/api_tag.decorator';
 @ApiBearerAuth()
 @BackofficeController('staff')
 @UseGuards(B_JwtAuthGuard, B_RolesGuard)
-@UseInterceptors(TransformPostInterceptor)
 export class StaffController {
   constructor(private readonly staffService: StaffService) {}
 

@@ -78,25 +78,25 @@ export class B_UserService {
   async updateUserStatus(username: string, status: UserStatus) {
     await this.getUserByUsername(username);
 
-    const user = await this.prisma.user.update({
+    await this.prisma.user.update({
       where: { username },
       data: { status },
       omit: USER_OMIT,
     });
 
-    return { user };
+    return { message: 'User status updated successfully' };
   }
 
   async updateUserVerified(username: string, isVerified: number) {
     await this.getUserByUsername(username);
 
-    const user = await this.prisma.user.update({
+    await this.prisma.user.update({
       where: { username },
       data: { isVerified },
       omit: USER_OMIT,
     });
 
-    return { user };
+    return { message: 'User verification status updated successfully' };
   }
 
   async deleteUser(username: string) {

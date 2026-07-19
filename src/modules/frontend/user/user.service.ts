@@ -44,13 +44,13 @@ export class F_UserService {
 
   async updateMyProfile(userId: number, dto: UpdateMyProfileDto) {
     try {
-      const user = await this.prisma.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: dto,
         omit: USER_OMIT,
       });
 
-      return { user };
+      return { message: 'Profile updated successfully' };
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&

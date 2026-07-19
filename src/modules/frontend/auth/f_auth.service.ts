@@ -46,7 +46,7 @@ export class F_AuthService {
     );
 
     try {
-      const newUser = await this.prisma.user.create({
+      await this.prisma.user.create({
         data: {
           username: dto.username,
           email: dto.email,
@@ -60,9 +60,7 @@ export class F_AuthService {
       });
 
       return {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
+        message: 'User registered successfully',
       };
     } catch (error) {
       // narrows the race window between the findFirst check above and this
@@ -143,6 +141,7 @@ export class F_AuthService {
     const accessToken = await this.jwtService.signAsync(payload);
 
     return {
+      message: 'Login successful',
       accessToken,
       user: {
         id: user.id,

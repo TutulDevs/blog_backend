@@ -5,19 +5,16 @@ import {
   Param,
   ParseIntPipe,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CategoryService } from './category.service';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
-import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
 import { GetAllCategoriesQueryDto } from './dto/category.dto';
 import { FrontendController } from 'src/common/decorators/route.decorator';
 import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 
 @FrontendApiTags('categories')
 @FrontendController('categories')
-@UseInterceptors(TransformPostInterceptor)
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 

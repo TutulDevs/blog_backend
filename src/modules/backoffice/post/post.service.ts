@@ -102,13 +102,13 @@ export class B_PostService {
   async updatePostStatus(id: number, status: PostStatus) {
     await this.findPostByIdOrThrow(id);
 
-    const post = await this.prisma.post.update({
+    await this.prisma.post.update({
       where: { id },
       data: { status },
       include: POST_INCLUDE,
     });
 
-    return { post };
+    return { message: 'Post status updated successfully' };
   }
 
   async deletePost(id: number) {

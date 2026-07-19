@@ -7,6 +7,7 @@ import {
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all_exceptions.filter';
+import { TransformResponseInterceptor } from './common/interceptors/transform_response.interceptor';
 // import * as fs from 'fs';
 
 async function bootstrap() {
@@ -32,6 +33,7 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalInterceptors(new TransformResponseInterceptor());
 
   // CORS
   const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map((o) =>

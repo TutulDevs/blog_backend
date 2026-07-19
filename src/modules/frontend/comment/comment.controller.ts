@@ -10,7 +10,6 @@ import {
   Post,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
@@ -21,7 +20,6 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { OptionalAuth } from '../../../common/decorators/optional_auth.decorator';
 import { UserEntity } from '../../../common/decorators/user.decorator';
 import { StaffRole } from '../../../lib/coreconstants';
-import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
 import {
   CreateCommentDto,
   GetAllCommentsQueryDto,
@@ -35,7 +33,6 @@ import { FrontendApiTags } from 'src/common/decorators/api_tag.decorator';
 @ApiBearerAuth()
 @FrontendController('comments')
 @UseGuards(F_JwtAuthGuard)
-@UseInterceptors(TransformPostInterceptor)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 

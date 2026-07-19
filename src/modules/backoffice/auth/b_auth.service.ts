@@ -80,7 +80,7 @@ export class B_AuthService {
     const hashedPassword = await bcrypt.hash(dto.password, DEFAULT_SALT_ROUNDS);
 
     try {
-      const newStaff = await this.prisma.staff.create({
+      await this.prisma.staff.create({
         data: {
           ...dto,
           password: hashedPassword,
@@ -88,8 +88,7 @@ export class B_AuthService {
       });
 
       return {
-        id: newStaff.id,
-        email: newStaff.email,
+        message: 'Staff registered successfully',
       };
     } catch (error) {
       // narrows the race window between the findUnique check above and this

@@ -82,28 +82,28 @@ export class StaffService {
   async updateStaffStatus(id: number, status: StaffStatus) {
     await this.getStaffById(id);
 
-    const staff = await this.prisma.staff.update({
+    await this.prisma.staff.update({
       where: { id },
       data: { status },
       omit: { password: true, resetCode: true, resetCodeExpiresAt: true },
     });
 
     return {
-      staff,
+      message: 'Staff status updated successfully',
     };
   }
 
   async updateStaffRole(id: number, role: StaffRole) {
     await this.getStaffById(id);
 
-    const staff = await this.prisma.staff.update({
+    await this.prisma.staff.update({
       where: { id },
       data: { role },
       omit: { password: true, resetCode: true, resetCodeExpiresAt: true },
     });
 
     return {
-      staff,
+      message: 'Staff role updated successfully',
     };
   }
 }

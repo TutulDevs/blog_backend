@@ -201,7 +201,8 @@ export class PostService {
           userId,
           status: PostStatus.DRAFT,
         },
-        include: POST_INCLUDE,
+        // include: POST_INCLUDE,
+        select: { slug: true, title: true },
       });
 
       return { message: 'Post created successfully', post };
@@ -234,7 +235,8 @@ export class PostService {
       const updated = await this.prisma.post.update({
         where: { id },
         data: dto,
-        include: POST_INCLUDE,
+        // include: POST_INCLUDE,
+        select: { slug: true, title: true },
       });
 
       return { message: 'Post updated successfully', post: updated };
@@ -257,7 +259,8 @@ export class PostService {
       const updated = await this.prisma.post.update({
         where: { id },
         data: { slug: slugify(slug) },
-        include: POST_INCLUDE,
+        // include: POST_INCLUDE,
+        select: { slug: true, title: true },
       });
 
       return { message: 'Slug updated successfully', post: updated };
@@ -283,7 +286,8 @@ export class PostService {
     const updated = await this.prisma.post.update({
       where: { id },
       data: { coverImage },
-      include: POST_INCLUDE,
+      // include: POST_INCLUDE,
+      select: { slug: true, coverImage: true },
     });
 
     return { message: 'Cover image updated successfully', post: updated };

@@ -10,7 +10,6 @@ import {
   Post,
   Query,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { B_CategoryService } from './category.service';
@@ -25,13 +24,11 @@ import {
 } from './dto/category.dto';
 import { BackofficeController } from '../../../common/decorators/route.decorator';
 import { BackofficeApiTags } from '../../../common/decorators/api_tag.decorator';
-import { TransformPostInterceptor } from '../../../common/interceptors/transform_post.interceptor';
 
 @BackofficeApiTags('categories')
 @ApiBearerAuth()
 @BackofficeController('categories')
 @UseGuards(B_JwtAuthGuard, B_RolesGuard)
-@UseInterceptors(TransformPostInterceptor)
 export class B_CategoryController {
   constructor(private readonly categoryService: B_CategoryService) {}
 
