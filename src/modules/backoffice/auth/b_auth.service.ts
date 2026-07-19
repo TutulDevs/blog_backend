@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
   DEFAULT_SALT_ROUNDS,
@@ -78,17 +79,33 @@ export class B_AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, DEFAULT_SALT_ROUNDS);
 
-    const newStaff = await this.prisma.staff.create({
-      data: {
-        ...dto,
-        password: hashedPassword,
-      },
-    });
+    try {
+      const newStaff = await this.prisma.staff.create({
+        data: {
+          ...dto,
+          password: hashedPassword,
+        },
+      });
 
-    return {
-      id: newStaff.id,
-      email: newStaff.email,
-    };
+      return {
+        id: newStaff.id,
+        email: newStaff.email,
+      };
+    } catch (error) {
+      // narrows the race window between the findUnique check above and this
+      // create — two concurrent registrations with the same email would
+      // otherwise surface as a raw 500
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'An account with this email address already exists.',
+        );
+      }
+
+      throw error;
+    }
   }
 
   async staffForgotPassword(dto: StaffForgotPasswordDto) {

@@ -1,7 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsEmail,
-  IsEnum,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -11,6 +10,7 @@ import {
 import { Type } from 'class-transformer';
 import { CommentStatus } from '../../../../lib/coreconstants';
 import { PaginationPageLimitDto } from 'src/common/dto/pagination.dto';
+import { IsEnumValue } from 'src/common/decorators/is_enum_value.decorator';
 
 export class CreateCommentDto {
   @ApiProperty({ example: 1 })
@@ -50,7 +50,7 @@ export class UpdateCommentDto {
 
 export class UpdateCommentStatusDto {
   @ApiProperty({ enum: CommentStatus, example: CommentStatus.APPROVED })
-  @IsEnum(CommentStatus)
+  @IsEnumValue(CommentStatus)
   status: CommentStatus;
 }
 
@@ -69,7 +69,7 @@ export class GetAllCommentsQueryDto extends PaginationPageLimitDto {
 
   @ApiPropertyOptional({ enum: CommentStatus, example: CommentStatus.APPROVED })
   @IsOptional()
-  @IsEnum(CommentStatus, { message: 'Invalid status' })
+  @IsEnumValue(CommentStatus)
   status?: CommentStatus;
 
   @ApiPropertyOptional({

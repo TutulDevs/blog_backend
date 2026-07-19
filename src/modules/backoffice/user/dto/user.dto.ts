@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import {
   STATUS_ACTIVE,
@@ -7,6 +7,7 @@ import {
   UserStatus,
 } from '../../../../lib/coreconstants';
 import { PaginationPageLimitDto } from '../../../../common/dto/pagination.dto';
+import { IsEnumValue } from '../../../../common/decorators/is_enum_value.decorator';
 
 export class GetAllUsersQueryDto extends PaginationPageLimitDto {
   @ApiPropertyOptional({ example: 'john' })
@@ -23,7 +24,7 @@ export class GetAllUsersQueryDto extends PaginationPageLimitDto {
 
   @ApiPropertyOptional({ enum: UserStatus, example: UserStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(UserStatus, { message: 'Invalid status' })
+  @IsEnumValue(UserStatus)
   status?: UserStatus;
 
   @ApiPropertyOptional({
@@ -62,7 +63,7 @@ export class GetAllUsersQueryDto extends PaginationPageLimitDto {
 
 export class UpdateUserStatusDto {
   @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
-  @IsEnum(UserStatus)
+  @IsEnumValue(UserStatus)
   status: UserStatus;
 }
 

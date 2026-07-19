@@ -69,19 +69,33 @@ export class CommentService {
       );
     }
 
-    const comment = await this.prisma.comment.create({
-      data: {
-        content: dto.content,
-        postId: dto.postId,
-        userId: isAuthor ? authUser.id : null,
-        guestName: isAuthor ? null : dto.guestName,
-        guestEmail: isAuthor ? null : dto.guestEmail,
-        status: CommentStatus.PENDING,
-      },
-      include: COMMENT_INCLUDE,
-    });
+    try {
+      const comment = await this.prisma.comment.create({
+        data: {
+          content: dto.content,
+          postId: dto.postId,
+          userId: isAuthor ? authUser.id : null,
+          guestName: isAuthor ? null : dto.guestName,
+          guestEmail: isAuthor ? null : dto.guestEmail,
+          status: CommentStatus.PENDING,
+        },
+        include: COMMENT_INCLUDE,
+      });
 
-    return { comment };
+      return { comment };
+    } catch (error) {
+      // narrows the race window between the assertPostExists check above
+      // and this create — the post (or the author's account) being deleted
+      // in that gap would otherwise surface as a raw 500
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException('Invalid post or user reference');
+      }
+
+      throw error;
+    }
   }
 
   async getAllComments(query: GetAllCommentsQueryDto) {

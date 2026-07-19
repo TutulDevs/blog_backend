@@ -1,17 +1,18 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { StaffRole, StaffStatus } from '../../../../lib/coreconstants';
 import { Transform } from 'class-transformer';
+import { IsEnumValue } from '../../../../common/decorators/is_enum_value.decorator';
 
 export class UpdateStaffStatusDto {
   @ApiProperty({ enum: StaffStatus, example: StaffStatus.ACTIVE })
-  @IsEnum(StaffStatus)
+  @IsEnumValue(StaffStatus)
   status: StaffStatus;
 }
 
 export class UpdateStaffRoleDto {
   @ApiProperty({ enum: StaffRole, example: StaffRole.EDITOR })
-  @IsEnum(StaffRole)
+  @IsEnumValue(StaffRole)
   role: StaffRole;
 }
 
@@ -30,12 +31,12 @@ export class GetAllStaffsQueryDto {
 
   @ApiPropertyOptional({ enum: StaffStatus, example: StaffStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(StaffStatus, { message: 'Invalid status' })
+  @IsEnumValue(StaffStatus)
   status?: StaffStatus;
 
   @ApiPropertyOptional({ enum: StaffRole, example: StaffRole.ADMIN })
   @IsOptional()
-  @IsEnum(StaffRole, { message: 'Invalid role' })
+  @IsEnumValue(StaffRole)
   role?: StaffRole;
 
   // Pagination

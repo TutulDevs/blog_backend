@@ -1,14 +1,9 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import {
-  IsEnum,
-  IsIn,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { CategoryStatus } from '../../../../lib/coreconstants';
 import { PaginationPageLimitDto } from '../../../../common/dto/pagination.dto';
+import { IsEnumValue } from '../../../../common/decorators/is_enum_value.decorator';
 
 export class CreateCategoryDto {
   @ApiProperty({ example: 'Technology' })
@@ -18,7 +13,7 @@ export class CreateCategoryDto {
 
   @ApiPropertyOptional({ enum: CategoryStatus, example: CategoryStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(CategoryStatus, { message: 'Invalid status' })
+  @IsEnumValue(CategoryStatus)
   status?: CategoryStatus;
 }
 
@@ -39,7 +34,7 @@ export class GetAllCategoriesQueryDto extends PaginationPageLimitDto {
 
   @ApiPropertyOptional({ enum: CategoryStatus, example: CategoryStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(CategoryStatus, { message: 'Invalid status' })
+  @IsEnumValue(CategoryStatus)
   status?: CategoryStatus;
 
   @ApiPropertyOptional({

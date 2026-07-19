@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsEnum,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -11,6 +10,7 @@ import {
 import { Type } from 'class-transformer';
 import { PostStatus } from '../../../../lib/coreconstants';
 import { PaginationPageLimitDto } from 'src/common/dto/pagination.dto';
+import { IsEnumValue } from 'src/common/decorators/is_enum_value.decorator';
 
 export class GetAllPostsQueryDto extends PaginationPageLimitDto {
   @ApiPropertyOptional({ example: 'nestjs' })
@@ -20,7 +20,7 @@ export class GetAllPostsQueryDto extends PaginationPageLimitDto {
 
   @ApiPropertyOptional({ enum: PostStatus, example: PostStatus.PUBLISHED })
   @IsOptional()
-  @IsEnum(PostStatus, { message: 'Invalid status' })
+  @IsEnumValue(PostStatus)
   status?: PostStatus;
 
   @ApiPropertyOptional({ example: 1 })

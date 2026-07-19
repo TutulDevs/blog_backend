@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
   STATUS_ACTIVE,
@@ -44,24 +45,40 @@ export class F_AuthService {
       Date.now() + USER_VERIFY_CODE_TTL_MINUTES * 60 * 1000,
     );
 
-    const newUser = await this.prisma.user.create({
-      data: {
-        username: dto.username,
-        email: dto.email,
-        name: dto.name,
-        password: hashedPassword,
-        status: UserStatus.PENDING_VERIFICATION,
-        isVerified: STATUS_INACTIVE,
-        verifyCode: generateRandomNumber(),
-        verifyCodeExpiresAt,
-      },
-    });
+    try {
+      const newUser = await this.prisma.user.create({
+        data: {
+          username: dto.username,
+          email: dto.email,
+          name: dto.name,
+          password: hashedPassword,
+          status: UserStatus.PENDING_VERIFICATION,
+          isVerified: STATUS_INACTIVE,
+          verifyCode: generateRandomNumber(),
+          verifyCodeExpiresAt,
+        },
+      });
 
-    return {
-      id: newUser.id,
-      username: newUser.username,
-      email: newUser.email,
-    };
+      return {
+        id: newUser.id,
+        username: newUser.username,
+        email: newUser.email,
+      };
+    } catch (error) {
+      // narrows the race window between the findFirst check above and this
+      // create — two concurrent registrations with the same email/username
+      // would otherwise surface as a raw 500
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'An account with this email or username already exists.',
+        );
+      }
+
+      throw error;
+    }
   }
 
   async userVerifyEmail(dto: UserVerifyEmailDto) {
