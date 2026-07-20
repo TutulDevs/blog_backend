@@ -62,17 +62,20 @@ model Post {
 }
 
 model Comment {
-  id         Int      @id @default(autoincrement())
-  content    String
-  status     Int      @default(0)
-  postId     Int
-  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  userId     Int?
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  guestName  String?
-  guestEmail String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  content   String
+  status    Int       @default(0)
+  postId    Int
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parentId  Int?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([postId, parentId, id])
 }
 
 model Newsletter {

@@ -9,39 +9,25 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { CommentStatus } from '../../../lib/coreconstants';
 import {
   CreateCommentDto,
-  GetAllCommentsQueryDto,
+  GetCommentsByPostIdQueryDto,
   UpdateCommentDto,
 } from './dto/comment.dto';
-import {
-  AuthenticatedUser,
-  isStaffUser,
-} from 'src/common/guards/auth-payload.types';
-
-const COMMENT_INCLUDE = {
-  user: {
-    select: { id: true, username: true, name: true },
-  },
-} as Prisma.CommentInclude;
 
 @Injectable()
 export class CommentService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private assertOwnerOrStaff(
-    comment: { userId: number | null },
-    authUser: AuthenticatedUser,
-  ) {
-    if (isStaffUser(authUser)) return;
-
-    if (comment.userId === null || comment.userId !== authUser.id) {
-      throw new ForbiddenException(
-        'You do not have permission to modify this comment',
-      );
-    }
-  }
-
   private async findCommentByIdOrThrow(id: number) {
-    const comment = await this.prisma.comment.findUnique({ where: { id } });
+    const comment = await this.prisma.comment.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        postId: true,
+        userId: true,
+        parentId: true,
+        status: true,
+      },
+    });
 
     if (!comment) {
       throw new NotFoundException('Comment not found');
@@ -51,22 +37,43 @@ export class CommentService {
   }
 
   private async assertPostExists(postId: number) {
-    const post = await this.prisma.post.findUnique({ where: { id: postId } });
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
 
     if (!post) {
       throw new NotFoundException('Post not found');
     }
   }
 
-  async createComment(dto: CreateCommentDto, authUser?: AuthenticatedUser) {
+  async createComment(dto: CreateCommentDto, authUserId: number) {
     await this.assertPostExists(dto.postId);
 
-    const isAuthor = !!authUser && !isStaffUser(authUser);
+    if (dto.parentId) {
+      const targetComment = await this.prisma.comment.findUnique({
+        where: { id: dto.parentId },
+        select: { id: true, parentId: true, postId: true },
+      });
 
-    if (!isAuthor && (!dto.guestName || !dto.guestEmail)) {
-      throw new BadRequestException(
-        'guestName and guestEmail are required when not logged in as an author',
-      );
+      // if the parent comment exists
+      if (!targetComment) {
+        throw new NotFoundException('Parent comment not found');
+      }
+
+      // Check: parent comment
+      if (targetComment.postId !== dto.postId) {
+        throw new BadRequestException(
+          'Parent comment does not belong to the specified post.',
+        );
+      }
+
+      // check if the comment is a reply of a comment
+      if (targetComment.parentId !== null) {
+        throw new BadRequestException(
+          'Nested replies are not allowed. You can only reply to main comments.',
+        );
+      }
     }
 
     try {
@@ -74,15 +81,15 @@ export class CommentService {
         data: {
           content: dto.content,
           postId: dto.postId,
-          userId: isAuthor ? authUser.id : null,
-          guestName: isAuthor ? null : dto.guestName,
-          guestEmail: isAuthor ? null : dto.guestEmail,
-          status: CommentStatus.PENDING,
+          parentId: dto?.parentId || null, // reply
+          userId: authUserId,
+          status: CommentStatus.APPROVED,
         },
-        include: COMMENT_INCLUDE,
       });
 
-      return { message: 'Comment submitted successfully' };
+      const commentOrReplyText = dto?.parentId ? 'Reply' : 'Comment';
+
+      return { message: commentOrReplyText + ' submitted successfully' };
     } catch (error) {
       // narrows the race window between the assertPostExists check above
       // and this create — the post (or the author's account) being deleted
@@ -98,96 +105,155 @@ export class CommentService {
     }
   }
 
-  async getAllComments(query: GetAllCommentsQueryDto) {
-    const { postId, userId, status, sortBy, sortOrder, page, limit } = query;
-
-    const where: Prisma.CommentWhereInput = {};
-
-    if (postId !== undefined) {
-      where.postId = postId;
-    }
-
-    if (userId !== undefined) {
-      where.userId = userId;
-    }
-
-    if (status !== undefined) {
-      where.status = status;
-    }
-
-    const skip = (page - 1) * limit;
-    const take = limit;
-
-    const [totalFilteredComments, comments] = await Promise.all([
-      this.prisma.comment.count({ where }),
-      this.prisma.comment.findMany({
-        where,
-        skip,
-        take,
-        orderBy: !sortBy ? { createdAt: 'desc' } : { [sortBy]: sortOrder },
-        include: COMMENT_INCLUDE,
-      }),
-    ]);
-
-    return {
-      meta: {
-        totalCount: totalFilteredComments,
-        page,
-        limit,
-        totalPages: Math.ceil(totalFilteredComments / limit),
-      },
-      list: comments,
-    };
-  }
-
-  async getCommentById(id: number) {
-    const comment = await this.prisma.comment.findUnique({
-      where: { id },
-      include: COMMENT_INCLUDE,
-    });
-
-    if (!comment) {
-      throw new NotFoundException('Comment not found');
-    }
-
-    return { comment };
-  }
-
-  async updateComment(
-    id: number,
-    dto: UpdateCommentDto,
-    authUser: AuthenticatedUser,
-  ) {
+  async updateComment(id: number, dto: UpdateCommentDto, authUserId: number) {
     const comment = await this.findCommentByIdOrThrow(id);
-    this.assertOwnerOrStaff(comment, authUser);
+
+    if (comment.userId !== authUserId) {
+      throw new ForbiddenException('You can only update your own comments');
+    }
 
     await this.prisma.comment.update({
       where: { id },
       data: { content: dto.content },
-      include: COMMENT_INCLUDE,
     });
 
     return { message: 'Comment updated successfully' };
   }
 
-  async updateCommentStatus(id: number, status: CommentStatus) {
-    await this.findCommentByIdOrThrow(id);
-
-    await this.prisma.comment.update({
-      where: { id },
-      data: { status },
-      include: COMMENT_INCLUDE,
-    });
-
-    return { message: 'Comment status updated successfully' };
-  }
-
-  async deleteComment(id: number, authUser: AuthenticatedUser) {
+  async deleteComment(id: number, authUserId: number) {
     const comment = await this.findCommentByIdOrThrow(id);
-    this.assertOwnerOrStaff(comment, authUser);
+
+    const isReply = comment.parentId != null || comment.parentId != undefined;
+
+    if (comment.userId !== authUserId) {
+      throw new ForbiddenException(
+        `You do not have the access to delete this ${isReply ? 'reply' : 'comment'}`,
+      );
+    }
 
     await this.prisma.comment.delete({ where: { id } });
 
-    return { message: 'Comment deleted successfully' };
+    return { message: `${isReply ? 'Reply' : 'Comment'} deleted successfully` };
+  }
+
+  async getCommentsByPostId(
+    postId: number,
+    query: GetCommentsByPostIdQueryDto,
+    // authUserId?: number,
+  ) {
+    await this.assertPostExists(postId);
+
+    const { limit, cursor } = query;
+
+    const where: Prisma.CommentWhereInput = {
+      postId,
+      parentId: null, // only main parents - not replies
+      status: CommentStatus.APPROVED, // only approved comments to be shown
+    };
+
+    const [totalOfCommentAndReplies, comments] = await Promise.all([
+      this.prisma.comment.count({
+        where: { postId, status: CommentStatus.APPROVED },
+      }),
+      this.prisma.comment.findMany({
+        where,
+        take: limit + 1, // to check if next page exists
+        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+        orderBy: { id: 'desc' }, // new comments first
+        select: {
+          id: true,
+          content: true,
+          // parentId: true,
+          createdAt: true,
+          updatedAt: true,
+          user: { select: { id: true, username: true, name: true } },
+          _count: { select: { replies: true } },
+        },
+      }),
+    ]);
+
+    let hasNextPage = false;
+    if (comments.length > limit) {
+      hasNextPage = true;
+      comments.pop();
+    }
+
+    const nextCursor = hasNextPage ? comments[comments.length - 1]?.id : null;
+
+    return {
+      meta: {
+        totalCount: totalOfCommentAndReplies,
+        limit,
+        cursor: cursor,
+        nextCursor: nextCursor,
+        hasNextPage: hasNextPage,
+      },
+      list: comments,
+    };
+  }
+
+  async getCommentReplies(
+    parentId: number,
+    query: GetCommentsByPostIdQueryDto,
+    // authUserId?: number,
+  ) {
+    const parentComment = await this.prisma.comment.findUnique({
+      where: { id: parentId },
+      select: { id: true, parentId: true, status: true },
+    });
+
+    // if it exists
+    if (!parentComment || parentComment.status !== CommentStatus.APPROVED) {
+      throw new NotFoundException('Parent comment not found');
+    }
+
+    // check if its a reply or not
+    if (parentComment.parentId !== null) {
+      throw new BadRequestException('Cannot fetch replies of a reply');
+    }
+
+    const { limit, cursor } = query;
+
+    const where: Prisma.CommentWhereInput = {
+      parentId,
+      status: CommentStatus.APPROVED,
+    };
+
+    const [totalReplies, replies] = await Promise.all([
+      this.prisma.comment.count({ where }),
+      this.prisma.comment.findMany({
+        where,
+        take: limit + 1, // to check if next page exists
+        ...(cursor && { cursor: { id: cursor }, skip: 1 }),
+        orderBy: { id: 'asc' }, // old replies first
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+          user: { select: { id: true, username: true, name: true } },
+        },
+      }),
+    ]);
+
+    let hasNextPage = false;
+    if (replies.length > limit) {
+      hasNextPage = true;
+      replies.pop();
+    }
+
+    const nextCursor =
+      hasNextPage && replies.length > 0 ? replies[replies.length - 1].id : null;
+
+    return {
+      meta: {
+        totalCount: totalReplies,
+        limit,
+        cursor: cursor,
+        nextCursor: nextCursor,
+        hasNextPage: hasNextPage,
+      },
+      list: replies,
+    };
   }
 }

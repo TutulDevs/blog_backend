@@ -41,7 +41,7 @@ interface ErrorResponseBody {
  *   shape).
  * - Unexpected/5xx errors (DB errors, bugs, etc.) are logged server-side via
  *   Logger, but the raw message is never sent to the client — only the
- *   generic "Internal server error" is.
+ *   generic "Something went wrong. Please contact support." is.
  *
  * Examples:
  *
@@ -82,8 +82,8 @@ interface ErrorResponseBody {
  *   "code": 500,
  *   "timestamp": "2026-07-19T10:22:00.000Z",
  *   "path": "/api/f/posts",
- *   "message": "Internal server error",
- *   "messages": ["Internal server error"]
+ *   "message": "Something went wrong. Please contact support.",
+ *   "messages": ["Something went wrong. Please contact support."]
  * }
  */
 @Catch() // if empty, catch all error (HttpException, Database Error etc)
@@ -135,7 +135,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
-      messages: ['Internal server error'],
+      messages: ['Something went wrong. Please contact support.'],
     };
   }
 
@@ -169,7 +169,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
    * Prisma errors (some do, e.g. post.service.ts / user.service.ts, to give
    * a more specific message). Without this, an unhandled unique-key or
    * foreign-key violation would otherwise surface as an opaque
-   * "Internal server error" 500 instead of a proper 409/400/404.
+   * "Something went wrong. Please contact support." 500 instead of a proper 409/400/404.
    */
   private resolvePrismaError(
     error: Prisma.PrismaClientKnownRequestError,

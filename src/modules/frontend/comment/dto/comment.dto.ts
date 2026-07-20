@@ -1,16 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsEmail,
-  IsIn,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { CommentStatus } from '../../../../lib/coreconstants';
-import { PaginationPageLimitDto } from 'src/common/dto/pagination.dto';
-import { IsEnumValue } from 'src/common/decorators/is_enum_value.decorator';
 
 export class CreateCommentDto {
   @ApiProperty({ example: 1 })
@@ -23,22 +20,10 @@ export class CreateCommentDto {
   @IsNotEmpty()
   content: string;
 
-  @ApiPropertyOptional({
-    example: 'Jane Doe',
-    description: 'Required for guest (not logged in) comments',
-  })
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  guestName?: string;
-
-  @ApiPropertyOptional({
-    example: 'jane@email.com',
-    description: 'Required for guest (not logged in) comments',
-  })
-  @IsOptional()
-  @IsEmail()
-  guestEmail?: string;
+  @ApiPropertyOptional({ description: 'Parent comment id for reply' })
+  @Type(() => Number)
+  @IsInt()
+  parentId?: number;
 }
 
 export class UpdateCommentDto {
@@ -48,46 +33,16 @@ export class UpdateCommentDto {
   content: string;
 }
 
-export class UpdateCommentStatusDto {
-  @ApiProperty({ enum: CommentStatus, example: CommentStatus.APPROVED })
-  @IsEnumValue(CommentStatus)
-  status: CommentStatus;
-}
-
-export class GetAllCommentsQueryDto extends PaginationPageLimitDto {
-  @ApiPropertyOptional({ example: 1 })
+export class GetCommentsByPostIdQueryDto {
+  @ApiPropertyOptional({ description: 'Next cursor' })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  postId?: number;
+  cursor?: number;
 
-  @ApiPropertyOptional({ example: 1 })
-  @IsOptional()
+  @ApiProperty({ example: 5 })
+  @IsNumber()
   @Type(() => Number)
-  @IsInt()
-  userId?: number;
-
-  @ApiPropertyOptional({ enum: CommentStatus, example: CommentStatus.APPROVED })
-  @IsOptional()
-  @IsEnumValue(CommentStatus)
-  status?: CommentStatus;
-
-  @ApiPropertyOptional({
-    example: 'createdAt',
-    description: 'Field to sort by',
-  })
-  @IsOptional()
-  @IsString()
-  @IsIn(['createdAt'], { message: 'Invalid sortBy field' })
-  sortBy?: string = 'createdAt';
-
-  @ApiPropertyOptional({
-    example: 'desc',
-    enum: ['asc', 'desc'],
-    description: 'Sort direction',
-  })
-  @IsOptional()
-  @IsString()
-  @IsIn(['asc', 'desc'], { message: 'sortOrder must be either asc or desc' })
-  sortOrder?: 'asc' | 'desc' = 'desc';
+  @Min(0)
+  limit: number = 5;
 }
