@@ -5,7 +5,7 @@ Reference for every `/api/b/*` route, for use by the admin frontend project.
 - **Base path**: `/api/b/*` (global prefix `api` + `BackofficeController` prefix `b`, see `src/main.ts` and `src/common/decorators/route.decorator.ts`).
 - **Auth**: every route requires a valid **Staff** JWT (`B_JwtAuthGuard`) — there is no optional-auth path on the backoffice side. Send `Authorization: Bearer <token>`.
 - **Roles**: `B_RolesGuard` reads `@Roles(...)` metadata per route. A route with no `@Roles(...)` listed below allows **any authenticated staff member** (ADMIN or EDITOR) through. `StaffRole`: `ADMIN = 1`, `EDITOR = 2` (`src/lib/coreconstants.ts`).
-- **Pagination**: unless noted otherwise, list endpoints extend `PaginationPageLimitDto` — `page` (default `1`), `limit` (default `10`), both optional numeric query params.
+- **Pagination**: unless noted otherwise, list endpoints extend `PaginationPageLimitDto` — `page` (default `1`), `limit` (default `10`), both optional numeric query params. Comment/reply list endpoints are the exception and use **cursor pagination** instead (`cursor?`, `limit` default `10`, min `1`) — see `docs/api-response-shapes.md#cursor-pagination`.
 - **Enums**: all `status`/`role` columns are plain `Int` codes. See [Enum Reference](#enum-reference) at the bottom for the numeric values to send/expect.
 - Full request/response schemas are also live in Swagger at `/api/docs`.
 
@@ -90,11 +90,30 @@ Controller: `B_PostController` (`src/modules/backoffice/post/`).
 
 ---
 
+## Model: Comment
+
+Belongs to a `Post` and a `User` (nullable — set to `null` if the author's account is later deleted, so comments outlive the author). Supports a single level of replies via a self-relation (`parentId`/`replies`) — replying to a reply is rejected. Table: `Comment` (`id`, `content`, `status`, `postId`, `userId`, `parentId`, `createdAt`, `updatedAt`).
+
+Controller: `B_CommentController` (`src/modules/backoffice/comment/`). This is the moderation surface for comments — unlike the frontend side (which only ever shows `APPROVED` comments and auto-approves new ones), these endpoints see and set every `CommentStatus` value.
+
+### `/api/b/comments`
+
+| Method | Endpoint | Roles | Description | Params / Query / Body |
+|---|---|---|---|---|
+| GET | `/api/b/comments` | any staff | List top-level comments (any status) for a post | Query: `postId` (int, required), `status?` (`CommentStatus`), `search?` (matches comment content), `cursor?` (int), `limit?` (default `10`) |
+| GET | `/api/b/comments/:parentId/replies` | any staff | List replies (any status) to a top-level comment | Param: `parentId` (int) · Query: `status?` (`CommentStatus`), `cursor?` (int), `limit?` (default `10`) |
+| PATCH | `/api/b/comments/:id/status` | any staff | Update a comment's or reply's moderation status | Param: `id` (int) · Body: `{ status: CommentStatus }` |
+
+Notes:
+- `GET /api/b/comments` only returns top-level comments (`parentId === null`) — use the `:parentId/replies` route to page through a comment's replies.
+- `GET /api/b/comments/:parentId/replies` 404s if `parentId` doesn't exist, and 400s if `parentId` itself is a reply (nested replies don't exist in this schema).
+
+---
+
 ## Not yet exposed on the backoffice side
 
 These Prisma models have no `/api/b/*` controller yet:
 
-- **Comment** — no backoffice moderation endpoints exist yet (comment moderation, per `docs/backoffice-frontend-split-plan.md`, is planned but not built).
 - **Newsletter** — no backoffice endpoints exist yet.
 - **Test** — scratch/dev model, not part of the API surface.
 
@@ -144,7 +163,7 @@ Source of truth: `src/lib/coreconstants.ts`.
 | 0 | INACTIVE |
 | 1 | ACTIVE |
 
-**CommentStatus** (defined, not yet used by any backoffice endpoint)
+**CommentStatus**
 | Value | Meaning |
 |---|---|
 | 0 | PENDING |

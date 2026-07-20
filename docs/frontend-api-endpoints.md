@@ -6,7 +6,7 @@ Reference for every `/api/f/*` route, for use by the admin frontend project (and
 - **Auth**: routes require a valid **User** (blog writer) JWT via `F_JwtAuthGuard`, sent as `Authorization: Bearer <token>`. Routes marked `@OptionalAuth()` work both logged-out and logged-in — pass a token to get personalized data (e.g. ownership flags), omit it for the public view.
 - **Mutating routes** (POST/PATCH/DELETE that aren't public creation) additionally carry `UserStatusGuard` at the method level, which blocks banned/suspended users even though they hold a valid token.
 - **Ownership**: for owner-only actions (edit/delete own post or comment), the service checks `resource.userId === authUser.id`; staff are not distinguished on this side — this is the user-facing surface only. See `docs/backoffice-api-endpoints.md` for staff moderation of the same models.
-- **Pagination**: list endpoints extend `PaginationPageLimitDto` — `page` (default `1`), `limit` (default `10`), both optional numeric query params.
+- **Pagination**: most list endpoints extend `PaginationPageLimitDto` — `page` (default `1`), `limit` (default `10`), both optional numeric query params. Comment/reply list endpoints are the exception and use **cursor pagination** instead (`cursor?`, `limit` default `5`, min `1`) — see `docs/api-response-shapes.md#cursor-pagination`.
 - **Enums**: all `status` columns are plain `Int` codes. See [Enum Reference](#enum-reference) at the bottom.
 - Full request/response schemas are also live in Swagger at `/api/docs`.
 
@@ -69,8 +69,8 @@ Controller: `PostController` (`src/modules/frontend/post/`).
 | GET | `/api/f/posts` | optional | List posts (published; logged-in caller also sees ownership context) | Query: `search?`, `status?` (`PostStatus`), `categoryId?` (int), `userId?` (int), `sortBy?` (`createdAt`\|`title`, default `createdAt`), `sortOrder?` (`asc`\|`desc`, default `desc`), `page?`, `limit?` |
 | GET | `/api/f/posts/me` | required | Get my posts (all statuses) for my dashboard | Query: same list filters as above |
 | GET | `/api/f/posts/:slug` | optional | Get a single post by slug | Param: `slug` (string) |
+| GET | `/api/f/posts/:id/comments` | optional | Get top-level (approved, non-reply) comments for a post | Param: `id` (int) · Query: `cursor?` (int), `limit?` (default `5`) |
 | POST | `/api/f/posts` | required + status | Create a new post (owned by me) | Body: `{ title, content, slug?, coverImage?, categoryId? }` |
-| POST | `/api/f/posts/:id/comments` | required + status | Publish a comment on this post as me | Param: `id` (int) · Body: `{ content }` |
 | PATCH | `/api/f/posts/:id` | required + status + owner | Update title/content/category/status (self can only archive) | Param: `id` (int) · Body: `{ title?, content?, categoryId?, status? (ARCHIVED only) }` |
 | PATCH | `/api/f/posts/:id/slug` | required + status + owner | Update post slug | Param: `id` (int) · Body: `{ slug }` |
 | PATCH | `/api/f/posts/:id/cover-image` | required + status + owner | Update post cover image | Param: `id` (int) · Body: `{ coverImage }` |
@@ -80,22 +80,24 @@ Controller: `PostController` (`src/modules/frontend/post/`).
 
 ## Model: Comment
 
-Belongs to a `Post`, optionally to a `User` (nullable — guests supported via `guestName`/`guestEmail`). Table: `Comment` (`id`, `content`, `status`, `postId`, `userId`, `guestName`, `guestEmail`, `createdAt`, `updatedAt`).
+Belongs to a `Post`, and now **always** to a `User` — guest comments (`guestName`/`guestEmail`) have been removed; only logged-in authors can comment. Comments support a single level of replies via a self-relation (`parentId`/`replies`) — replying to a reply is rejected. Table: `Comment` (`id`, `content`, `status`, `postId`, `userId`, `parentId`, `createdAt`, `updatedAt`).
 
-Controller: `CommentController` (`src/modules/frontend/comment/`). Also reachable via the nested `POST /api/f/posts/:id/comments` route above.
+Controller: `CommentController` (`src/modules/frontend/comment/`). Top-level comment listing is reachable via the nested `GET /api/f/posts/:id/comments` route (see Post section above), not from `/api/f/comments` directly.
+
+Comments no longer go through a moderation queue on this side — new comments are created with status `APPROVED` immediately. Staff-side moderation (viewing all statuses, changing status) lives on the backoffice side now — see `docs/backoffice-api-endpoints.md`.
 
 ### `/api/f/comments`
 
 | Method | Endpoint | Auth | Description | Params / Query / Body |
 |---|---|---|---|---|
-| POST | `/api/f/comments` | optional + status (if logged in) | Create a comment as logged-in author or guest | Body: `{ postId (int), content, guestName? (required if not logged in), guestEmail? (required if not logged in) }` |
-| GET | `/api/f/comments` | optional | List comments (optionally filtered by post/user) | Query: `postId?` (int), `userId?` (int), `status?` (`CommentStatus`), `sortBy?` (`createdAt`), `sortOrder?` (`asc`\|`desc`, default `desc`), `page?`, `limit?` |
-| GET | `/api/f/comments/:id` | optional | Get a comment by id | Param: `id` (int) |
+| POST | `/api/f/comments` | required + status | Create a comment or reply as me (auto-approved) | Body: `{ postId (int), content, parentId? (int, top-level comment id to reply to) }` |
 | PATCH | `/api/f/comments/:id` | required + status + owner | Update my comment's content | Param: `id` (int) · Body: `{ content }` |
-| PATCH | `/api/f/comments/:id/status` | staff only (`@Roles(ADMIN, EDITOR)`) — **note below** | Update comment moderation status | Param: `id` (int) · Body: `{ status: CommentStatus }` |
-| DELETE | `/api/f/comments/:id` | required + status + owner | Delete my comment | Param: `id` (int) |
+| DELETE | `/api/f/comments/:id` | required + status + owner | Delete my comment or reply | Param: `id` (int) |
+| GET | `/api/f/comments/:parentId/replies` | optional | Get replies (approved) to a top-level comment | Param: `parentId` (int) · Query: `cursor?` (int), `limit?` (default `5`) |
 
-> **Note:** `PATCH /api/f/comments/:id/status` carries `@Roles(StaffRole.ADMIN, StaffRole.EDITOR)` but the controller is guarded by `F_JwtAuthGuard`, which only accepts **User**-shaped tokens — staff tokens are rejected before the roles check ever runs, and there is no `RolesGuard` attached on the frontend side to enforce it against logged-in Users either. In effect this endpoint is currently reachable by **any logged-in User**, not just staff. Comment moderation is planned to move to `/api/b/*` per `docs/backoffice-frontend-split-plan.md`; treat this route as unreliable for the admin frontend until that migration lands.
+Notes on `POST /api/f/comments`:
+- `parentId` must reference an existing **top-level** comment (`parentId === null`) on the same `postId` — replying to a reply, or to a comment on a different post, returns `400`.
+- Omit `parentId` entirely for a top-level comment.
 
 ---
 
@@ -136,7 +138,7 @@ Source of truth: `src/lib/coreconstants.ts`.
 | 0 | INACTIVE |
 | 1 | ACTIVE |
 
-**CommentStatus**
+**CommentStatus** — comments created via `/api/f/comments` are always `APPROVED`; the other values are only ever set/read on the backoffice side (see `docs/backoffice-api-endpoints.md`).
 | Value | Meaning |
 |---|---|
 | 0 | PENDING |

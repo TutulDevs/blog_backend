@@ -6,6 +6,7 @@ import { StaffModule } from './staff/staff.module';
 import { B_UserModule } from './user/user.module';
 import { B_CategoryModule } from './category/category.module';
 import { B_PostModule } from './post/post.module';
+import { B_CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { B_PostModule } from './post/post.module';
     B_UserModule,
     B_CategoryModule,
     B_PostModule,
+    B_CommentModule,
   ],
   controllers: [B_AuthController],
   providers: [B_AuthService],

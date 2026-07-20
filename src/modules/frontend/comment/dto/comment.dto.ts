@@ -21,6 +21,7 @@ export class CreateCommentDto {
   content: string;
 
   @ApiPropertyOptional({ description: 'Parent comment id for reply' })
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   parentId?: number;
@@ -40,9 +41,10 @@ export class GetCommentsByPostIdQueryDto {
   @IsInt()
   cursor?: number;
 
-  @ApiProperty({ example: 5 })
+  @ApiPropertyOptional({ example: 5, default: 5 })
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @Min(0)
+  @Min(1)
   limit: number = 5;
 }

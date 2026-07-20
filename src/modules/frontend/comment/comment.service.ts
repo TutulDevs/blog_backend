@@ -123,7 +123,7 @@ export class CommentService {
   async deleteComment(id: number, authUserId: number) {
     const comment = await this.findCommentByIdOrThrow(id);
 
-    const isReply = comment.parentId != null || comment.parentId != undefined;
+    const isReply = comment.parentId != null;
 
     if (comment.userId !== authUserId) {
       throw new ForbiddenException(
