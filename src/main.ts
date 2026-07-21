@@ -8,6 +8,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AllExceptionsFilter } from './common/filters/all_exceptions.filter';
 import { TransformResponseInterceptor } from './common/interceptors/transform_response.interceptor';
+import { apiReference } from '@scalar/nestjs-api-reference';
 // import * as fs from 'fs';
 
 async function bootstrap() {
@@ -64,6 +65,17 @@ async function bootstrap() {
     swaggerOptions: { docExpansion: 'none' },
   });
   // fs.writeFileSync('./swagger.json', JSON.stringify(document, null, 2)); // to get json in swagger /api/docs-json
+
+  //  Scalar Middleware
+  app.use(
+    '/reference',
+    apiReference({
+      spec: {
+        content: document,
+      },
+      theme: 'purple',
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3000);
 }
